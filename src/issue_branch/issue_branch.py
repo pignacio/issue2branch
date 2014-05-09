@@ -21,13 +21,13 @@ class IssueTracker():
         if user:
             self._password = password if password else getpass.getpass()
 
-
     def _get_issue_url(self, issue):
         return "{}/issues/{}".format(self._base_url, issue)
 
     def _get_issue_contents(self, issue):
         url = self._get_issue_url(issue)
-        response = requests.get(url, auth=(self._user, self._password))
+        auth = (self._user, self._password) if self._user else None
+        response = requests.get(url, auth=auth)
         if response.status_code != 200:
             raise ValueError("get for '{}' did not return 200 but {}".format(url, response.status_code))
         return BeautifulSoup(response.content)
@@ -84,9 +84,24 @@ class Github(IssueTracker):
     def from_remotes(cls, remotes):
         return cls._from_remotes(remotes, domain_has='github.com')
 
+class Bitbucket(IssueTracker):
+    def _get_issue_title(self, contents):
+        div = contents.find(id='issue-view')
+        issue_id = div.find('span', "issue-id").text
+        title = div.find(id='issue-title').text
+        return "{} {}".format(issue_id, title)
+
+    @classmethod
+    def from_remotes(cls, remotes):
+        return cls._from_remotes(remotes, domain_has='bitbucket.org')
+
+    def _get_issue_url(self, issue):
+        return "{}/issue/{}".format(self._base_url, issue)
+
 ISSUE_TRACKERS = {
     'redmine' : Redmine,
     'github' : Github,
+    'bitbucket' : Bitbucket,
 }
 
 def _get_git_root():
