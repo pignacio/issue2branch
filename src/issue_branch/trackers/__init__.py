@@ -14,10 +14,11 @@ from trackers.redmine import Redmine
 
 
 ISSUE_TRACKERS = {
-    'redmine' : Redmine,
-    'github' : Github,
-    'bitbucket' : Bitbucket,
+    'redmine': Redmine,
+    'github': Github,
+    'bitbucket': Bitbucket,
 }
+
 
 def get_issue_tracker(config):
     if "issue_tracker" in config and "issue_tracker_url" in config:
@@ -33,6 +34,6 @@ def get_issue_tracker(config):
             tracker = issue_tracker_class.from_remotes(remotes)
             if tracker:
                 return tracker
-    raise ValueError("Could not get issue tracker type/url from config/remotes. "
-                     "Is the configuration file properly setup? "
-                     "({})".format(get_config_file()))
+    raise ValueError("Could not get issue tracker type/url from "
+                     "config/remotes. Is the configuration file properly "
+                     "setup? ({})".format(get_config_file()))

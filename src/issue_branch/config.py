@@ -9,9 +9,11 @@ from git import get_git_root
 
 CONF_FILE = '.issue_branch.config'
 
+
 def get_config_file():
     git_root = get_git_root()
     return os.path.join(git_root, CONF_FILE)
+
 
 def get_config():
     config_file = get_config_file()

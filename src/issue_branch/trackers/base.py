@@ -9,6 +9,7 @@ from BeautifulSoup import BeautifulSoup
 import requests
 import getpass
 
+
 class IssueTracker():
 
     _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
@@ -29,7 +30,8 @@ class IssueTracker():
         auth = (self._user, self._password) if self._user else None
         response = requests.get(url, auth=auth)
         if response.status_code != 200:
-            raise ValueError("get for '{}' did not return 200 but {}".format(url, response.status_code))
+            raise ValueError("HTTP GET for '{}' did not return 200 but {}"
+                             .format(url, response.status_code))
         return BeautifulSoup(response.content)
 
     def _get_issue_title(self, cotents):

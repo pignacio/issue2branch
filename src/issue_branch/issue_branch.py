@@ -19,7 +19,8 @@ def main():
 
     title = tracker.get_issue_title(issue)
     print "Got title: '{}'".format(title)
-    branch = re.sub("\s+", "-", "".join(re.findall(BRANCH_NAME_RE, title)).lower())
+    branch = "".join(re.findall(BRANCH_NAME_RE, title)).lower()
+    branch = re.sub("\s+", "-", branch)
 
     print "Branching '{}'".format(branch)
 
