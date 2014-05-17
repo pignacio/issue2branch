@@ -15,18 +15,15 @@ class IssueTracker():
     _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
     _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
 
-    def __init__(self, base_url, user=None, password=None):
+    def __init__(self, base_url, user=None, password=None,
+                 repo_user=None, repo_name=None):
         self._base_url = base_url
         self._user = user
         self._password = None
         if user:
             self._password = password if password else getpass.getpass()
-        mobj = re.search(self._HTTP_RE, base_url)
-        if mobj:
-            _domain, self._repo_user, self._repo_name = mobj.groups()
-        else:
-            self._repo_user = None
-            self._repo_name = None
+        self._repo_user = repo_user
+        self._repo_name = repo_name
 
     def _get_issue_url(self, issue):
         return "{}/issues/{}".format(self._base_url, issue)
@@ -38,7 +35,10 @@ class IssueTracker():
         if response.status_code != 200:
             raise ValueError("HTTP GET for '{}' did not return 200 but {}"
                              .format(url, response.status_code))
-        return BeautifulSoup(response.content)
+        if 'application/json' in response.headers['content-type']:
+            return response.json()
+        else:
+            return BeautifulSoup(response.content)
 
     def _get_issue_title(self, cotents):
         raise NotImplementedError()
@@ -51,22 +51,29 @@ class IssueTracker():
         raise NotImplementedError()
 
     @classmethod
-    def from_remotes(cls, remotes):
+    def from_remotes(cls, remotes, config=None):
         return None
 
     @classmethod
-    def _from_remotes(cls, remotes, domain_has):
+    def _get_default_url(cls, domain, user, repo):
+        return 'http://{domain}/{user}/{repo}'.format(**locals())
+
+    @classmethod
+    def _from_remotes(cls, remotes, domain_has, config=None):
         if 'origin' in remotes:
             parsed = cls._parse(remotes['origin'])
             if parsed:
                 domain, user, repo = parsed
                 if domain_has is not None and domain_has in domain:
-                    return cls._from_parsed_url(domain, user, repo)
+                    return cls._from_parsed_url(domain, user, repo,
+                                                config=config)
 
     @classmethod
-    def _from_parsed_url(cls, domain, user, repo):  # pylint: disable=W0613
-        base_url = 'http://{domain}/{user}/{repo}'.format(**locals())
-        return cls(base_url)
+    def _from_parsed_url(cls, domain, user, repo, config=None):  # pylint: disable=W0613
+        config = config or {}
+        base_url = config.get('issue_tracker_url',
+                              cls._get_default_url(domain, user, repo))
+        return cls(base_url, repo_user=user, repo_name=repo)
 
     @classmethod
     def _parse(cls, remote_url):

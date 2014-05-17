@@ -31,7 +31,7 @@ def get_issue_tracker(config):
         # try to autodeduce issue tracker from repo remotes
         remotes = get_remotes()
         for issue_tracker_class in ISSUE_TRACKERS.values():
-            tracker = issue_tracker_class.from_remotes(remotes)
+            tracker = issue_tracker_class.from_remotes(remotes, config=config)
             if tracker:
                 return tracker
     raise ValueError("Could not get issue tracker type/url from "

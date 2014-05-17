@@ -5,16 +5,12 @@ Created on May 17, 2014
 '''
 from trackers.base import IssueTracker
 import requests
-import re
 
 
 class Github(IssueTracker):
 
     def _get_issue_title(self, contents):
-        div = contents.find(id='show_issue')
-        return ("Issue " +
-                " ".join(div.find('span', c).text
-                         for c in ['gh-header-number', 'js-issue-title']))
+        return "Issue {} {}".format(contents['number'], contents['title'])
 
     def get_issues(self):
         if not (self._repo_user and self._repo_name):
@@ -25,8 +21,12 @@ class Github(IssueTracker):
         return {issue['number']: issue['title'] for issue in issues}
 
     @classmethod
-    def from_remotes(cls, remotes):
-        return cls._from_remotes(remotes, domain_has='github.com')
+    def _get_default_url(cls, domain, user, repo):
+        return _api_url("repos/{user}/{repo}".format(**locals()))
+
+    @classmethod
+    def from_remotes(cls, remotes, config=None):
+        return cls._from_remotes(remotes, domain_has='github.com', config=config)
 
 
 def _api_url(path):

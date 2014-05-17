@@ -10,17 +10,15 @@ import requests
 class Bitbucket(IssueTracker):
 
     def _get_issue_title(self, contents):
-        div = contents.find(id='issue-view')
-        issue_id = div.find('span', "issue-id").text
-        title = div.find(id='issue-title').text
-        return "{} {}".format(issue_id, title)
+        return "{} {}".format(contents['local_id'], contents['title'])
 
     @classmethod
-    def from_remotes(cls, remotes):
-        return cls._from_remotes(remotes, domain_has='bitbucket.org')
+    def from_remotes(cls, remotes, config=None):
+        return cls._from_remotes(remotes, domain_has='bitbucket.org', config=config)
 
-    def _get_issue_url(self, issue):
-        return "{}/issue/{}".format(self._base_url, issue)
+    @classmethod
+    def _get_default_url(cls, domain, user, repo):
+        return _api_url("repositories/{user}/{repo}".format(**locals()))
 
     def get_issues(self):
         if not (self._repo_user and self._repo_name):
