@@ -10,6 +10,15 @@ def get_git_root():
     proc = _run_command(command)
     return proc.stdout.readline().strip()
 
+def get_remotes():
+    command = ['remote', '--verbose']
+    proc = _run_command(command)
+    remotes = {}
+    for line in proc.stdout:
+        name, url = line.split()[:2]
+        remotes[name] = url
+    return remotes
+
 def _run_command(command):
     command = ["git"] + command
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)

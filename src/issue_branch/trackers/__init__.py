@@ -7,6 +7,7 @@ import os
 import subprocess
 
 from config import get_config_file
+from git import get_remotes
 from trackers.bitbucket import Bitbucket
 from trackers.github import Github
 from trackers.redmine import Redmine
@@ -27,14 +28,7 @@ def get_issue_tracker(config):
         return issue_tracker
     else:
         # try to autodeduce issue tracker from repo remotes
-        command = ['git', 'remote', '--verbose']
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE)
-        proc.wait()
-        remotes = {}
-        for line in proc.stdout:
-            name, url = line.split()[:2]
-            remotes[name] = url
-
+        remotes = get_remotes()
         for issue_tracker_class in ISSUE_TRACKERS.values():
             tracker = issue_tracker_class.from_remotes(remotes)
             if tracker:
