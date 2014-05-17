@@ -36,7 +36,7 @@ def main():
                    .format(tracker.__class__))
             return
         print "Got {} issues".format(len(issues))
-        for issue_id, text in issues.items():
+        for issue_id, text in sorted(issues.items()):
             print " * {} - {}".format(issue_id, text)
     else:
         print "Getting issue title for issue: '{}'".format(options.issue)
