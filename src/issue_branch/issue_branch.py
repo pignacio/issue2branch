@@ -12,9 +12,14 @@ BRANCH_NAME_RE = r"[a-zA-Z0-9\s\-_]"
 
 def _get_arg_parser():
     parser = ArgumentParser()
-    parser.add_argument("issue", nargs='?')
+    parser.add_argument("issue", nargs='?',
+                        help="Issue to start working on")
     parser.add_argument("-l", "--list",
-                        action='store_true', default=False)
+                        action='store_true', default=False,
+                        help="List current issues")
+    parser.add_argument("-n", "--noop",
+                        action='store_true', default=False,
+                        help="Show branch name but don't create it")
     return parser
 
 def _parse_args():
@@ -44,10 +49,11 @@ def main():
         print "Got title: '{}'".format(title)
         branch = "".join(re.findall(BRANCH_NAME_RE, title)).lower()
         branch = re.sub("\s+", "-", branch)
-
-        print "Branching '{}'".format(branch)
-
-        os.system("git checkout -b {}".format(branch))
+        if options.noop:
+            print "Would branch: {}".format(branch)
+        else:
+            print "Branching '{}'".format(branch)
+            os.system("git checkout -b {}".format(branch))
 
 if __name__ == "__main__":
     main()
