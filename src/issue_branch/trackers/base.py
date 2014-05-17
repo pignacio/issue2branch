@@ -41,6 +41,9 @@ class IssueTracker():
         contents = self._get_issue_contents(issue)
         return self._get_issue_title(contents)
 
+    def get_issues(self):
+        raise NotImplementedError()
+
     @classmethod
     def from_remotes(cls, remotes):
         return None
