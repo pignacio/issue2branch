@@ -21,6 +21,12 @@ class IssueTracker():
         self._password = None
         if user:
             self._password = password if password else getpass.getpass()
+        mobj = re.search(self._HTTP_RE, base_url)
+        if mobj:
+            _domain, self._repo_user, self._repo_name = mobj.groups()
+        else:
+            self._repo_user = None
+            self._repo_name = None
 
     def _get_issue_url(self, issue):
         return "{}/issues/{}".format(self._base_url, issue)
