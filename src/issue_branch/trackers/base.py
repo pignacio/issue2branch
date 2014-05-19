@@ -25,13 +25,16 @@ class IssueTracker():
         self._repo_user = repo_user
         self._repo_name = repo_name
 
+    def _requests_get(self, url):
+        auth = (self._user, self._password) if self._user else None
+        return requests.get(url, auth=auth)
+
     def _get_issue_url(self, issue):
         return "{}/issues/{}".format(self._base_url, issue)
 
     def _get_issue_contents(self, issue):
         url = self._get_issue_url(issue)
-        auth = (self._user, self._password) if self._user else None
-        response = requests.get(url, auth=auth)
+        response = self._requests_get(url)
         if response.status_code != 200:
             raise ValueError("HTTP GET for '{}' did not return 200 but {}"
                              .format(url, response.status_code))
