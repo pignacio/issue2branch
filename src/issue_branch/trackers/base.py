@@ -72,7 +72,7 @@ class IssueTracker():
                                                 config=config)
 
     @classmethod
-    def _from_parsed_url(cls, domain, user, repo, config=None):  # pylint: disable=W0613
+    def _from_parsed_url(cls, domain, user, repo, config=None):
         config = config or {}
         base_url = config.get('issue_tracker_url',
                               cls._get_default_url(domain, user, repo))

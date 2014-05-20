@@ -9,6 +9,7 @@ from argparse import ArgumentParser
 
 BRANCH_NAME_RE = r"[a-zA-Z0-9#.]+"
 
+
 def _get_arg_parser():
     parser = ArgumentParser()
     parser.add_argument("issue", nargs='?',
@@ -21,12 +22,14 @@ def _get_arg_parser():
                         help="Show branch name but don't create it")
     return parser
 
+
 def _parse_args():
     parser = _get_arg_parser()
     options = parser.parse_args()
     if not options.list and options.issue is None:
         raise ValueError("Must supply --list or a issue")
     return options
+
 
 def main():
     options = _parse_args()

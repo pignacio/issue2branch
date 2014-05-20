@@ -13,7 +13,8 @@ class Bitbucket(IssueTracker):
 
     @classmethod
     def from_remotes(cls, remotes, config=None):
-        return cls._from_remotes(remotes, domain_has='bitbucket.org', config=config)
+        return cls._from_remotes(remotes, domain_has='bitbucket.org',
+                                 config=config)
 
     @classmethod
     def _get_default_url(cls, domain, user, repo):
@@ -23,9 +24,10 @@ class Bitbucket(IssueTracker):
         if not (self._repo_user and self._repo_name):
             raise ValueError("Could not parse repo and user from url '{}'"
                              .format(self._base_url))
-        issues = self._api_get("repositories/{}/{}/issues".format(self._repo_user,
-                                                      self._repo_name))
-        return {issue['local_id']: issue['title'] for issue in issues['issues']}
+        issues = self._api_get("repositories/{}/{}/issues"
+                               .format(self._repo_user, self._repo_name))
+        return {issue['local_id']: issue['title']
+                for issue in issues['issues']}
 
     @staticmethod
     def _api_url(path):
@@ -38,5 +40,3 @@ class Bitbucket(IssueTracker):
             raise ValueError("bitbucket api returned code {} != 200 for '{}'"
                              .format(response.status_code, url))
         return response.json()
-
-

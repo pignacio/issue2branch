@@ -16,7 +16,7 @@ class Github(IssueTracker):
             raise ValueError("Could not parse repo and user from url '{}'"
                              .format(self._base_url))
         issues = self._api_get("repos/{}/{}/issues".format(self._repo_user,
-                                                      self._repo_name))
+                                                           self._repo_name))
         return {issue['number']: issue['title'] for issue in issues}
 
     @classmethod
@@ -25,7 +25,8 @@ class Github(IssueTracker):
 
     @classmethod
     def from_remotes(cls, remotes, config=None):
-        return cls._from_remotes(remotes, domain_has='github.com', config=config)
+        return cls._from_remotes(remotes, domain_has='github.com',
+                                 config=config)
 
     @staticmethod
     def _api_url(path):
@@ -38,5 +39,3 @@ class Github(IssueTracker):
             raise ValueError("Github api returned code {} != 200 for '{}'"
                              .format(response.status_code, url))
         return response.json()
-
-
