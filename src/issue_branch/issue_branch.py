@@ -7,7 +7,7 @@ from trackers import get_issue_tracker
 from argparse import ArgumentParser
 
 
-BRANCH_NAME_RE = r"[a-zA-Z0-9\s\-_]"
+BRANCH_NAME_RE = r"[a-zA-Z0-9#.]+"
 
 def _get_arg_parser():
     parser = ArgumentParser()
@@ -46,8 +46,7 @@ def main():
         print "Getting issue title for issue: '{}'".format(options.issue)
         title = tracker.get_issue_title(options.issue)
         print "Got title: '{}'".format(title)
-        branch = "".join(re.findall(BRANCH_NAME_RE, title)).lower()
-        branch = re.sub("\s+", "-", branch)
+        branch = "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
         if options.noop:
             print "Would branch: {}".format(branch)
         else:
