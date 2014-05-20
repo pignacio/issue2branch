@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import re
-import sys
 
 from config import get_config
 from trackers import get_issue_tracker
