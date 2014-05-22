@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-import os
 import re
 
 from config import get_config
 from trackers import get_issue_tracker
 from argparse import ArgumentParser
+from git import branch_and_move
 
 
 BRANCH_NAME_RE = r"[a-zA-Z0-9#.]+"
@@ -54,7 +54,7 @@ def main():
             print "Would branch: {}".format(branch)
         else:
             print "Branching '{}'".format(branch)
-            os.system("git checkout -b {}".format(branch))
+            branch_and_move(branch)
 
 if __name__ == "__main__":
     main()

@@ -22,6 +22,10 @@ def get_remotes():
     return remotes
 
 
+def branch_and_move(branch):
+    _run_command(['checkout', '-b', branch])
+
+
 def _run_command(command):
     command = ["git"] + command
     proc = subprocess.Popen(command, stdout=subprocess.PIPE)
