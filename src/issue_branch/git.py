@@ -23,7 +23,19 @@ def get_remotes():
 
 
 def branch_and_move(branch):
-    _run_command(['checkout', '-b', branch])
+    if _branch_exists(branch):
+        _run_command(['checkout', branch])
+    else:
+        _run_command(['checkout', '-b', branch])
+
+
+def _branch_exists(branch):
+    try:
+        proc = _run_command(["show-ref", "--verify", "--quiet",
+                             "refs/heads/{}".format(branch)])
+        return True
+    except ValueError:
+        return False
 
 
 def _run_command(command):
