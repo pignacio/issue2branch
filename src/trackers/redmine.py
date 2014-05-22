@@ -23,4 +23,11 @@ class Redmine(IssueTracker):
             raise ValueError("Redmine API responded {} != 200 for '{}'"
                              .format(response.status_code, url))
         issues = response.json()['issues']
-        return {issue['id']: issue['subject'] for issue in issues}
+        return {issue['id']: "{} - {}".format(issue['subject'], self._get_assignee(issue)) for issue in issues}
+
+    def _get_assignee(self, issue):
+        try:
+            return issue['assigned_to']['name']
+        except KeyError:
+            return "Not assigned"
+
