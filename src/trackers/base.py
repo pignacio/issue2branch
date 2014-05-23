@@ -26,8 +26,12 @@ class IssueTracker():
         self._repo_name = repo_name
 
     def _requests_get(self, url):
+        return self._request(requests.get, url)
+
+    def _request(self, method, url, *args, **kwargs):
         auth = (self._user, self._password) if self._user else None
-        return requests.get(url, auth=auth)
+        print "Requesting '{}'".format(url)
+        return method(url, auth=auth, *args, **kwargs)
 
     def _get_issue_url(self, issue):
         return "{}/issues/{}".format(self._base_url, issue)
