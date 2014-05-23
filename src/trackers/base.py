@@ -57,6 +57,9 @@ class IssueTracker():
     def from_remotes(cls, remotes, config=None):
         return None
 
+    def take_issue(self, issue):
+        raise NotImplementedError()
+
     @classmethod
     def _get_default_url(cls, domain, user, repo):
         return 'http://{domain}/{user}/{repo}'.format(**locals())

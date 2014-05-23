@@ -20,6 +20,9 @@ def _get_arg_parser():
     parser.add_argument("-n", "--noop",
                         action='store_true', default=False,
                         help="Show branch name but don't create it")
+    parser.add_argument("-t", "--take",
+                        action='store_true', default=False,
+                        help="Sets yourself as the assignee, if possible")
     return parser
 
 
@@ -60,6 +63,14 @@ def main():
         branch = "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
         _op("Branching '{}'".format(branch),
             branch_and_move, branch)
+
+        if options.take:
+            try:
+                _op("Taking issue: {}".format(options.issue),
+                    tracker.take_issue, options.issue)
+            except NotImplementedError:
+                print ("[ERROR] Issue taking is not implemented for {}"
+                       .format(tracker.__class__))
 
 if __name__ == "__main__":
     main()
