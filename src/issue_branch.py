@@ -33,6 +33,14 @@ def _parse_args():
 
 def main():
     options = _parse_args()
+
+    def _op(message, callback, *args, **kwargs):
+        if options.noop:
+            print "(noop) {}".format(message)
+        else:
+            print message
+            callback(*args, **kwargs)
+
     config = get_config()
     tracker = get_issue_tracker(config)
     if options.list:
@@ -50,11 +58,8 @@ def main():
         title = tracker.get_issue_title(options.issue)
         print "Got title: '{}'".format(title)
         branch = "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
-        if options.noop:
-            print "Would branch: {}".format(branch)
-        else:
-            print "Branching '{}'".format(branch)
-            branch_and_move(branch)
+        _op("Branching '{}'".format(branch),
+            branch_and_move, branch)
 
 if __name__ == "__main__":
     main()
