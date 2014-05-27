@@ -12,7 +12,8 @@ import getpass
 
 class IssueTracker():
 
-    def __init__(self, base_url, user=None, password=None):
+    def __init__(self, config, base_url, user=None, password=None):
+        self._config = config
         self._base_url = base_url
         self._user = user
         self._password = None
@@ -52,7 +53,7 @@ class IssueTracker():
         raise NotImplementedError()
 
     @classmethod
-    def from_remotes(cls, remotes, config=None):
+    def from_remotes(cls, config, remotes):
         return None
 
     def take_issue(self, issue):
@@ -64,28 +65,28 @@ class RepoIssueTracker(IssueTracker):
     _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
     _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
 
-    def __init__(self, base_url, user=None, password=None,
+    def __init__(self, config, base_url, user=None, password=None,
                  repo_user=None, repo_name=None):
-        IssueTracker.__init__(self, base_url, user, password)
+        IssueTracker.__init__(self, config, base_url, user, password)
         self._repo_user = repo_user
         self._repo_name = repo_name
 
     @classmethod
-    def _from_remotes(cls, remotes, domain_has, config=None):
+    def _from_remotes(cls, config, remotes, domain_has):
         if 'origin' in remotes:
             parsed = cls._parse(remotes['origin'])
             if parsed:
                 domain, user, repo = parsed
                 if domain_has is not None and domain_has in domain:
                     return cls._from_parsed_url(domain, user, repo,
-                                                config=config)
+                                                config)
 
     @classmethod
-    def _from_parsed_url(cls, domain, user, repo, config=None):
-        config = config or {}
+    def _from_parsed_url(cls, domain, user, repo, config):
         base_url = config.get('issue_tracker_url',
                               cls._get_default_url(domain, user, repo))
-        return cls(base_url, config.get('user', None),
+        return cls(config, base_url,
+                   config.get('user', None),
                    config.get('password', None),
                    repo_user=user, repo_name=repo)
 

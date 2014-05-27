@@ -24,9 +24,8 @@ class Github(RepoIssueTracker):
         return cls._api_url("repos/{user}/{repo}".format(**locals()))
 
     @classmethod
-    def from_remotes(cls, remotes, config=None):
-        return cls._from_remotes(remotes, domain_has='github.com',
-                                 config=config)
+    def from_remotes(cls, config, remotes):
+        return cls._from_remotes(config, remotes, domain_has='github.com')
 
     @staticmethod
     def _api_url(path):

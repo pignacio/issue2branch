@@ -23,7 +23,8 @@ ISSUE_TRACKERS = {
 def get_issue_tracker(config):
     if "issue_tracker" in config and "issue_tracker_url" in config:
         issue_tracker_class = ISSUE_TRACKERS[config['issue_tracker']]
-        issue_tracker = issue_tracker_class(config['issue_tracker_url'],
+        issue_tracker = issue_tracker_class(config,
+                                            config['issue_tracker_url'],
                                             config.get('user', None),
                                             config.get('password', None))
         return issue_tracker
@@ -31,7 +32,7 @@ def get_issue_tracker(config):
         # try to autodeduce issue tracker from repo remotes
         remotes = get_remotes()
         for issue_tracker_class in ISSUE_TRACKERS.values():
-            tracker = issue_tracker_class.from_remotes(remotes, config=config)
+            tracker = issue_tracker_class.from_remotes(config, remotes)
             if tracker:
                 return tracker
     raise ValueError("Could not get issue tracker type/url from "
