@@ -32,8 +32,13 @@ class Redmine(IssueTracker):
                 data['parent'] = json_data['parent']['id']
             except KeyError:
                 data['parent'] = None
-            data['text'] = "{} - {}".format(json_data['subject'],
-                                            self._get_assignee(json_data))
+            status = self._get_field_name(json_data, "status")
+            priority = self._get_field_name(json_data, "priority")
+            assignee = self._get_field_name(json_data, "assignee",
+                                            "Not assigned")
+            data['text'] = "[{}/{}] - {} - ({})".format(priority, status,
+                                                        json_data['subject'],
+                                                        assignee)
             data['childs'] = {}
             issues[json_data['id']] = data
 
@@ -50,11 +55,11 @@ class Redmine(IssueTracker):
 
         return issues
 
-    def _get_assignee(self, issue):
+    def _get_field_name(self, issue, field, default=None):
         try:
-            return issue['assigned_to']['name']
+            return issue[field]['name']
         except KeyError:
-            return "Not assigned"
+            return default
 
     def take_issue(self, issue):
         inprogress_id = self._get_from_config_or_die("inprogress_id",
