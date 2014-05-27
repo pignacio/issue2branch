@@ -34,7 +34,7 @@ class Redmine(IssueTracker):
                 data['parent'] = None
             status = self._get_field_name(json_data, "status")
             priority = self._get_field_name(json_data, "priority")
-            assignee = self._get_field_name(json_data, "assignee",
+            assignee = self._get_field_name(json_data, "assigned_to",
                                             "Not assigned")
             data['text'] = "[{}/{}] - {} - ({})".format(priority, status,
                                                         json_data['subject'],
