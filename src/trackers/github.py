@@ -3,10 +3,10 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from trackers.base import IssueTracker
+from trackers.base import RepoIssueTracker
 
 
-class Github(IssueTracker):
+class Github(RepoIssueTracker):
 
     def _get_issue_title(self, contents):
         return "Issue {} {}".format(contents['number'], contents['title'])
@@ -24,9 +24,8 @@ class Github(IssueTracker):
         return cls._api_url("repos/{user}/{repo}".format(**locals()))
 
     @classmethod
-    def from_remotes(cls, remotes, config=None):
-        return cls._from_remotes(remotes, domain_has='github.com',
-                                 config=config)
+    def from_remotes(cls, config, remotes):
+        return cls._from_remotes(config, remotes, domain_has='github.com')
 
     @staticmethod
     def _api_url(path):

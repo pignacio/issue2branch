@@ -3,18 +3,17 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from trackers.base import IssueTracker
+from trackers.base import RepoIssueTracker
 
 
-class Bitbucket(IssueTracker):
+class Bitbucket(RepoIssueTracker):
 
     def _get_issue_title(self, contents):
         return "{} {}".format(contents['local_id'], contents['title'])
 
     @classmethod
-    def from_remotes(cls, remotes, config=None):
-        return cls._from_remotes(remotes, domain_has='bitbucket.org',
-                                 config=config)
+    def from_remotes(cls, config, remotes):
+        return cls._from_remotes(config, remotes, domain_has='bitbucket.org')
 
     @classmethod
     def _get_default_url(cls, domain, user, repo):
