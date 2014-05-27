@@ -54,8 +54,7 @@ def main():
                    .format(tracker.__class__))
             return
         print "Got {} issues".format(len(issues))
-        for issue_id, text in sorted(issues.items()):
-            print " * {} - {}".format(issue_id, text)
+        _list_issues(issues)
     else:
         print "Getting issue title for issue: '{}'".format(options.issue)
         title = tracker.get_issue_title(options.issue)
@@ -71,6 +70,19 @@ def main():
             except NotImplementedError:
                 print ("[ERROR] Issue taking is not implemented for {}"
                        .format(tracker.__class__))
+
+
+def _list_issues(issues, indent=0):
+    for issue_id, issue_data in sorted(issues.items()):
+        try:
+            text = issue_data['text']
+            childs = issue_data.get('childs', {})
+        except (KeyError, TypeError):
+            text = issue_data
+            childs = {}
+        print "{} * {} - {}".format("  " * indent, issue_id, text)
+        _list_issues(childs, indent=indent + 1)
+
 
 if __name__ == "__main__":
     main()
