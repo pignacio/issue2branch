@@ -12,18 +12,12 @@ import getpass
 
 class IssueTracker():
 
-    _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
-    _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
-
-    def __init__(self, base_url, user=None, password=None,
-                 repo_user=None, repo_name=None):
+    def __init__(self, base_url, user=None, password=None):
         self._base_url = base_url
         self._user = user
         self._password = None
         if user:
             self._password = password if password else getpass.getpass()
-        self._repo_user = repo_user
-        self._repo_name = repo_name
 
     def _requests_get(self, url):
         return self._request(requests.get, url)
@@ -64,9 +58,17 @@ class IssueTracker():
     def take_issue(self, issue):
         raise NotImplementedError()
 
-    @classmethod
-    def _get_default_url(cls, domain, user, repo):
-        return 'http://{domain}/{user}/{repo}'.format(**locals())
+
+class RepoIssueTracker(IssueTracker):
+
+    _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
+    _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
+
+    def __init__(self, base_url, user=None, password=None,
+                 repo_user=None, repo_name=None):
+        IssueTracker.__init__(self, base_url, user, password)
+        self._repo_user = repo_user
+        self._repo_name = repo_name
 
     @classmethod
     def _from_remotes(cls, remotes, domain_has, config=None):
@@ -83,7 +85,9 @@ class IssueTracker():
         config = config or {}
         base_url = config.get('issue_tracker_url',
                               cls._get_default_url(domain, user, repo))
-        return cls(base_url, repo_user=user, repo_name=repo)
+        return cls(base_url, config.get('user', None),
+                   config.get('password', None),
+                   repo_user=user, repo_name=repo)
 
     @classmethod
     def _parse(cls, remote_url):
@@ -92,3 +96,7 @@ class IssueTracker():
             if mobj:
                 return mobj.groups()
         return None
+
+    @classmethod
+    def _get_default_url(cls, domain, user, repo):
+        return 'http://{domain}/{user}/{repo}'.format(**locals())

@@ -3,10 +3,10 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from trackers.base import IssueTracker
+from trackers.base import RepoIssueTracker
 
 
-class Github(IssueTracker):
+class Github(RepoIssueTracker):
 
     def _get_issue_title(self, contents):
         return "Issue {} {}".format(contents['number'], contents['title'])
