@@ -24,11 +24,31 @@ class Redmine(IssueTracker):
         if response.status_code != 200:
             raise ValueError("Redmine API responded {} != 200 for '{}'"
                              .format(response.status_code, url))
-        issues = response.json()['issues']
-        return {issue['id']: "{} - {}".format(
-            issue['subject'],
-            self._get_assignee(issue)
-        ) for issue in issues}
+        issues_json = response.json()['issues']
+        issues = {}
+        for json_data in issues_json:
+            data = {}
+            try:
+                data['parent'] = json_data['parent']['id']
+            except KeyError:
+                data['parent'] = None
+            data['text'] = "{} - {}".format(json_data['subject'],
+                                            self._get_assignee(json_data))
+            data['childs'] = {}
+            issues[json_data['id']] = data
+
+        childs = set()
+
+        for issue, data in issues.items():
+            parent = data['parent']
+            if parent is not None and parent in issues:
+                issues[parent]['childs'][issue] = data
+                childs.add(issue)
+
+        for child in childs:
+            del issues[child]
+
+        return issues
 
     def _get_assignee(self, issue):
         try:
@@ -57,4 +77,3 @@ class Redmine(IssueTracker):
         except KeyError:
             raise KeyError("Data for '{}' is missing from config. key:'{}'"
                            .format(description, key))
-
