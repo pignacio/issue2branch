@@ -59,6 +59,12 @@ class IssueTracker():
     def take_issue(self, issue):
         raise NotImplementedError()
 
+    def parse_args(self):
+        return self._get_arg_parser.parse_args()
+
+    def _get_arg_parser(self):
+        raise NotImplementedError()
+
 
 class RepoIssueTracker(IssueTracker):
 
