@@ -87,6 +87,9 @@ class IssueTracker():
     def run(self):
         self._options = self.parse_args()
 
+        if not any([self._options.issue, self._options.list]):
+            raise ValueError("Must supply an issue or -l/--list")
+
         def _op(message, callback, *args, **kwargs):
             if self._options.noop:
                 print "(noop) {}".format(message)
@@ -104,7 +107,8 @@ class IssueTracker():
             print "Got {} issues".format(len(issues))
             self._list_issues(issues)
         else:
-            print "Getting issue title for issue: '{}'".format(self._options.issue)
+            print ("Getting issue title for issue: "
+                   "'{}'".format(self._options.issue))
             title = self.get_issue_title(self._options.issue)
             print "Got title: '{}'".format(title)
             branch = "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
