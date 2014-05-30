@@ -104,7 +104,7 @@ class IssueTracker():
                 print ("[ERROR] Issue list is not implemented for {}"
                        .format(self.__class__))
                 return
-            print "Got {} issues".format(len(issues))
+            print "Got {} issues".format(self._count_issues(issues))
             self._list_issues(issues)
         else:
             print ("Getting issue title for issue: "
@@ -134,6 +134,12 @@ class IssueTracker():
                 childs = {}
             print "{} * {} - {}".format("  " * indent, issue_id, text)
             cls._list_issues(childs, indent=indent + 1)
+
+    @classmethod
+    def _count_issues(cls, issues):
+        return (len(issues) +
+                sum(cls._count_issues(data.get('childs', {}))
+                    for data in issues.values()))
 
 
 class RepoIssueTracker(IssueTracker):
