@@ -21,7 +21,9 @@ class Redmine(IssueTracker):
         return "{} {} {}".format(tracker, issue['id'], issue['subject'])
 
     def get_issues(self):
-        params = {}
+        params = {
+            'limit': self._config.get("issue_list_limit", 40)
+        }
         if self._options.mine:
             params['assigned_to_id'] = 'me'
         url = "{}/issues.json?{}".format(self._base_url,
