@@ -8,6 +8,29 @@ from trackers.base import IssueTracker
 import requests
 import json
 import urllib
+import color
+
+_PRIORITY_COLORS = {
+    'Immediate': color.bright_red,
+    'Urgent': color.red,
+    'High': color.bright_yellow,
+    'Normal': color.bright_blue,
+    'Low': color.green,
+}
+
+_STATUS_COLORS = {
+    'New': color.bright_yellow,
+    'In Progress': color.bright_cyan,
+    'Resolved': color.green,
+}
+
+
+def _format(value, format_dict):
+    try:
+        func = format_dict[value]
+        return func(value)
+    except KeyError:
+        return value
 
 
 class Redmine(IssueTracker):
@@ -43,7 +66,9 @@ class Redmine(IssueTracker):
             except KeyError:
                 data['parent'] = None
             status = self._get_field_name(json_data, "status")
+            status = _format(status, _STATUS_COLORS)
             priority = self._get_field_name(json_data, "priority")
+            priority = _format(priority, _PRIORITY_COLORS)
             assignee = self._get_field_name(json_data, "assigned_to",
                                             "Not assigned")
             data['text'] = "[{}/{}] - {} - ({})".format(priority, status,
