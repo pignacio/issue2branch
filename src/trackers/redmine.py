@@ -3,9 +3,11 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
+from __future__ import unicode_literals
 from trackers.base import IssueTracker
 import requests
 import json
+import urllib
 
 
 class Redmine(IssueTracker):
@@ -19,7 +21,11 @@ class Redmine(IssueTracker):
         return "{} {} {}".format(tracker, issue['id'], issue['subject'])
 
     def get_issues(self):
-        url = "{}/issues.json".format(self._base_url)
+        params = {}
+        if self._options.mine:
+            params['assigned_to_id'] = 'me'
+        url = "{}/issues.json?{}".format(self._base_url,
+                                         urllib.urlencode(params))
         response = self._requests_get(url)
         if response.status_code != 200:
             raise ValueError("Redmine API responded {} != 200 for '{}'"
@@ -82,3 +88,10 @@ class Redmine(IssueTracker):
         except KeyError:
             raise KeyError("Data for '{}' is missing from config. key:'{}'"
                            .format(description, key))
+
+    def _get_arg_parser(self):
+        parser = IssueTracker._get_arg_parser(self)
+        parser.add_argument("-m", "--mine",
+                            action='store_true', default=False,
+                            help='Only show issues assigned to me')
+        return parser
