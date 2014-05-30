@@ -22,6 +22,7 @@ _STATUS_COLORS = {
     'New': color.bright_yellow,
     'In Progress': color.bright_cyan,
     'Resolved': color.green,
+    'Closed': color.bright_green,
 }
 
 
@@ -51,6 +52,8 @@ class Redmine(IssueTracker):
             params['assigned_to_id'] = 'me'
         if self._options.version:
             params['fixed_version_id'] = self._options.version
+        if self._options.all:
+            params['status_id'] = "*"
         url = "{}/issues.json?{}".format(self._base_url,
                                          urllib.urlencode(params))
         response = self._requests_get(url)
@@ -126,4 +129,7 @@ class Redmine(IssueTracker):
         parser.add_argument("-v", "--version",
                             action='store', default=None,
                             help='Filter issue list by version')
+        parser.add_argument("-a", "--all",
+                            action='store_true', default=False,
+                            help='Show all issues, including closed ones')
         return parser
