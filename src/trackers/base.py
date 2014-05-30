@@ -3,13 +3,15 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
+from __future__ import unicode_literals
 import re
 
-from BeautifulSoup import BeautifulSoup
-import requests
-import getpass
-from git import branch_and_move
 from argparse import ArgumentParser
+from BeautifulSoup import BeautifulSoup
+import getpass
+import requests
+
+from git import branch_and_move
 
 BRANCH_NAME_RE = r"[a-zA-Z0-9#.]+"
 
