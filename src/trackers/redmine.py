@@ -26,6 +26,8 @@ class Redmine(IssueTracker):
         }
         if self._options.mine:
             params['assigned_to_id'] = 'me'
+        if self._options.version:
+            params['fixed_version_id'] = self._options.version
         url = "{}/issues.json?{}".format(self._base_url,
                                          urllib.urlencode(params))
         response = self._requests_get(url)
@@ -96,4 +98,7 @@ class Redmine(IssueTracker):
         parser.add_argument("-m", "--mine",
                             action='store_true', default=False,
                             help='Only show issues assigned to me')
+        parser.add_argument("-v", "--version",
+                            action='store', default=None,
+                            help='Filter issue list by version')
         return parser
