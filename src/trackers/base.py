@@ -129,7 +129,7 @@ class IssueTracker():
             try:
                 text = issue_data['text']
                 childs = issue_data.get('childs', {})
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, AttributeError):
                 text = issue_data
                 childs = {}
             print "{} * {} - {}".format("  " * indent, issue_id, text)
