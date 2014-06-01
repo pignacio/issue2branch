@@ -129,7 +129,7 @@ class IssueTracker():
             try:
                 text = issue_data['text']
                 childs = issue_data.get('childs', {})
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, AttributeError):
                 text = issue_data
                 childs = {}
             print "{} * {} - {}".format("  " * indent, issue_id, text)
@@ -137,8 +137,14 @@ class IssueTracker():
 
     @classmethod
     def _count_issues(cls, issues):
+        def _get_childs(data):
+            try:
+                return data.get('childs', {})
+            except AttributeError:
+                return {}
+
         return (len(issues) +
-                sum(cls._count_issues(data.get('childs', {}))
+                sum(cls._count_issues(_get_childs(data))
                     for data in issues.values()))
 
 
