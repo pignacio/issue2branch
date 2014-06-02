@@ -11,9 +11,7 @@ from BeautifulSoup import BeautifulSoup
 import getpass
 import requests
 
-from git import branch_and_move
-
-BRANCH_NAME_RE = r"[a-zA-Z0-9#.]+"
+from git import branch_and_move, get_branch_name
 
 
 class IssueTracker():
@@ -111,7 +109,7 @@ class IssueTracker():
                    "'{}'".format(self._options.issue))
             title = self.get_issue_title(self._options.issue)
             print "Got title: '{}'".format(title)
-            branch = "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
+            branch = get_branch_name(title)
             _op("Branching '{}'".format(branch),
                 branch_and_move, branch)
 

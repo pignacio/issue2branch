@@ -4,6 +4,9 @@ Created on May 17, 2014
 @author: ignacio
 '''
 import subprocess
+import re
+
+BRANCH_NAME_RE = r"[a-zA-Z0-9#]+"
 
 
 def get_git_root():
@@ -47,3 +50,10 @@ def _run_command(command):
         raise ValueError("Command {} failed. Is this a git repo?"
                          .format(command))
     return proc
+
+
+def get_branch_name(title):
+    return "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
+
+
+
