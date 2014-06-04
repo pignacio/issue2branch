@@ -5,6 +5,7 @@ Created on May 17, 2014
 '''
 from trackers.base import RepoIssueTracker
 import requests
+import json
 
 
 class Github(RepoIssueTracker):
@@ -19,6 +20,14 @@ class Github(RepoIssueTracker):
         issues = self._api_get("repos/{}/{}/issues".format(self._repo_user,
                                                            self._repo_name))
         return {issue['number']: issue['title'] for issue in issues}
+
+    def take_issue(self, issue):
+        url = self._get_issue_url(issue)
+        data = json.dumps({'assignee': self._user})
+        response = self._request(requests.patch, url, data=data)
+        if not response.status_code == 200:
+            raise ValueError("Github api returned code {} != 200 for '{}'"
+                             .format(response.status_code, url))
 
     @classmethod
     def _get_default_url(cls, domain, user, repo):
