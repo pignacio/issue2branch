@@ -56,7 +56,7 @@ class Redmine(IssueTracker):
             params['status_id'] = "*"
         url = "{}/issues.json?{}".format(self._base_url,
                                          urllib.urlencode(params))
-        response = self._requests_get(url)
+        response = self._request(requests.get, url)
         if response.status_code != 200:
             raise ValueError("Redmine API responded {} != 200 for '{}'"
                              .format(response.status_code, url))

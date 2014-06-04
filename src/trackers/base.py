@@ -25,9 +25,6 @@ class IssueTracker():
         if user:
             self._password = password if password else getpass.getpass()
 
-    def _requests_get(self, url):
-        return self._request(requests.get, url)
-
     def _request(self, method, url, *args, **kwargs):
         auth = (self._user, self._password) if self._user else None
         print "Requesting '{}'".format(url)
@@ -38,7 +35,7 @@ class IssueTracker():
 
     def _get_issue_contents(self, issue):
         url = self._get_issue_url(issue)
-        response = self._requests_get(url)
+        response = self._request(requests.get, url)
         if response.status_code != 200:
             raise ValueError("HTTP GET for '{}' did not return 200 but {}"
                              .format(url, response.status_code))

@@ -4,6 +4,7 @@ Created on May 17, 2014
 @author: ignacio
 '''
 from trackers.base import RepoIssueTracker
+import requests
 
 
 class Github(RepoIssueTracker):
@@ -33,7 +34,7 @@ class Github(RepoIssueTracker):
 
     def _api_get(self, path):
         url = self._api_url(path)
-        response = self._requests_get(url)
+        response = self._request(requests.get, url)
         if not response.status_code == 200:
             raise ValueError("Github api returned code {} != 200 for '{}'"
                              .format(response.status_code, url))
