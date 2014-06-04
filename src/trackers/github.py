@@ -4,6 +4,8 @@ Created on May 17, 2014
 @author: ignacio
 '''
 from trackers.base import RepoIssueTracker
+import requests
+import json
 
 
 class Github(RepoIssueTracker):
@@ -19,6 +21,14 @@ class Github(RepoIssueTracker):
                                                            self._repo_name))
         return {issue['number']: issue['title'] for issue in issues}
 
+    def take_issue(self, issue):
+        url = self._get_issue_url(issue)
+        data = json.dumps({'assignee': self._user})
+        response = self._request(requests.patch, url, data=data)
+        if not response.status_code == 200:
+            raise ValueError("Github api returned code {} != 200 for '{}'"
+                             .format(response.status_code, url))
+
     @classmethod
     def _get_default_url(cls, domain, user, repo):
         return cls._api_url("repos/{user}/{repo}".format(**locals()))
@@ -33,7 +43,7 @@ class Github(RepoIssueTracker):
 
     def _api_get(self, path):
         url = self._api_url(path)
-        response = self._requests_get(url)
+        response = self._request(requests.get, url)
         if not response.status_code == 200:
             raise ValueError("Github api returned code {} != 200 for '{}'"
                              .format(response.status_code, url))
