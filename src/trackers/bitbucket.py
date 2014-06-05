@@ -21,9 +21,6 @@ class Bitbucket(RepoIssueTracker):
         return cls._api_url("repositories/{user}/{repo}".format(**locals()))
 
     def get_issues(self):
-        if not (self._repo_user and self._repo_name):
-            raise ValueError("Could not parse repo and user from url '{}'"
-                             .format(self._base_url))
         issues = self._api_get("repositories/{}/{}/issues"
                                .format(self._repo_user, self._repo_name))
         return {issue['local_id']: issue['title']
@@ -40,3 +37,12 @@ class Bitbucket(RepoIssueTracker):
             raise ValueError("bitbucket api returned code {} != 200 for '{}'"
                              .format(response.status_code, url))
         return response.json()
+
+    @classmethod
+    def from_config(cls, config, repo_user=None, repo_name=None):
+        repo_user = config.get_or_die('bitbucket', 'repo_user',
+                                      default=repo_user)
+        repo_name = config.get_or_die('bitbucket', 'repo_name',
+                                      default=repo_name)
+        base_url = cls._get_default_url("bitbucket.org", repo_user, repo_name)
+        return cls(config, base_url, repo_user, repo_name)

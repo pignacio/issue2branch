@@ -4,10 +4,34 @@ Created on May 17, 2014
 @author: ignacio
 '''
 import os
-import yaml
+from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
+
 from git import get_git_root
 
+
 CONF_FILE = '.issue_branch.config'
+
+
+class Config():
+    def __init__(self, fname):
+        self._config = SafeConfigParser()
+        self._config.read([fname])
+
+    def get(self, section, option, default):
+        try:
+            return self._config.get(section, option)
+        except (NoSectionError, NoOptionError):
+            return default
+
+    def get_or_die(self, section, option, default=None):
+
+        try:
+            return self._config.get(section, option)
+        except (NoSectionError, NoOptionError):
+            if default is not None:
+                return default
+            raise ValueError("Config missing: Section:'{}', Option:'{}'"
+                             .format(section, option))
 
 
 def get_config_file():
@@ -16,8 +40,4 @@ def get_config_file():
 
 
 def get_config():
-    config_file = get_config_file()
-    if not os.path.isfile(config_file):
-        return {}
-    with open(config_file) as fhandle:
-        return yaml.load(fhandle)
+    return Config(get_config_file())
