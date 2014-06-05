@@ -14,7 +14,7 @@ import requests
 from git import branch_and_move, get_branch_name
 
 
-class IssueTracker():
+class IssueTracker(object):
 
     def __init__(self, config, base_url=None, user=None, password=None):
         self._config = config
