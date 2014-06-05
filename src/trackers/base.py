@@ -11,7 +11,7 @@ from BeautifulSoup import BeautifulSoup
 import getpass
 import requests
 
-from git import branch_and_move, get_branch_name
+from repo import branch_and_move, get_branch_name
 
 
 class IssueTracker(object):

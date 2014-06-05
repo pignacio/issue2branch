@@ -7,7 +7,7 @@ import os
 import subprocess
 
 from config import get_config_file
-from git import get_remotes
+from repo import get_remotes
 from trackers.bitbucket import Bitbucket
 from trackers.github import Github
 from trackers.redmine import Redmine
