@@ -161,12 +161,12 @@ class RepoIssueTracker(IssueTracker):
     @classmethod
     def _from_remotes(cls, config, remotes, domain_has):
         if 'origin' in remotes:
-            parsed = cls._parse(remotes['origin'])
-            if parsed:
-                domain, user, repo = parsed
-                if domain_has is not None and domain_has in domain:
-                    return cls.from_config(config, repo_user=user,
-                                           repo_name=repo)
+            try:
+                domain, user, repo = cls._parse(remotes['origin'])
+            except ValueError:
+                return None
+            if domain_has is not None and domain_has in domain:
+                return cls.from_config(config, repo_user=user, repo_name=repo)
 
     @classmethod
     def _from_parsed_url(cls, domain, user, repo, config):
@@ -178,7 +178,7 @@ class RepoIssueTracker(IssueTracker):
             mobj = re.search(regexp, remote_url)
             if mobj:
                 return mobj.groups()
-        return None
+        raise ValueError("Invalid url")
 
     @classmethod
     def _get_default_url(cls, domain, user, repo):
