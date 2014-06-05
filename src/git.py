@@ -34,8 +34,8 @@ def branch_and_move(branch):
 
 def _branch_exists(branch):
     try:
-        proc = _run_command(["show-ref", "--verify", "--quiet",
-                             "refs/heads/{}".format(branch)])
+        _run_command(["show-ref", "--verify", "--quiet",
+                      "refs/heads/{}".format(branch)])
         return True
     except ValueError:
         return False
@@ -54,6 +54,3 @@ def _run_command(command):
 
 def get_branch_name(title):
     return "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
-
-
-

@@ -93,7 +93,8 @@ class Redmine(IssueTracker):
 
         return issues
 
-    def _get_field_name(self, issue, field, default=None):
+    @staticmethod
+    def _get_field_name(issue, field, default=None):
         try:
             return issue[field]['name']
         except KeyError:
