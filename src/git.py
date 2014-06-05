@@ -5,14 +5,19 @@ Created on May 17, 2014
 '''
 import subprocess
 import re
+import os
 
 BRANCH_NAME_RE = r"[a-zA-Z0-9#]+"
 
 
 def get_git_root():
-    command = ['rev-parse', '--show-toplevel']
-    proc = _run_command(command)
-    return proc.stdout.readline().strip()
+    repo_dir = os.getcwd()
+    while not os.path.isdir(os.path.join(repo_dir, ".git")):
+        repo_dir, child = os.path.split(repo_dir)
+        if not child:
+            raise ValueError("'{}' is not inside a git repository"
+                             .format(os.getcwd()))
+    return repo_dir
 
 
 def get_remotes():
