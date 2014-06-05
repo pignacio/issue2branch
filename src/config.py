@@ -10,10 +10,12 @@ from repo import get_git_root
 
 
 CONF_FILE = '.issue_branch.config'
+CONF_ENV_VARIABLE = 'ISSUE_BRANCH_CONFIG'
 
 
 class Config(object):
     def __init__(self, fname):
+        print "Loading issue-branch config from: '{}'".format(fname)
         self._config = SafeConfigParser()
         self._config.read([fname])
 
@@ -35,8 +37,11 @@ class Config(object):
 
 
 def get_config_file():
-    git_root = get_git_root()
-    return os.path.join(git_root, CONF_FILE)
+    try:
+        return os.environ[CONF_ENV_VARIABLE]
+    except KeyError:
+        git_root = get_git_root()
+        return os.path.join(git_root, CONF_FILE)
 
 
 def get_config():
