@@ -12,7 +12,7 @@ from git import get_git_root
 CONF_FILE = '.issue_branch.config'
 
 
-class Config():
+class Config(object):
     def __init__(self, fname):
         self._config = SafeConfigParser()
         self._config.read([fname])

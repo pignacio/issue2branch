@@ -14,7 +14,7 @@ import requests
 from git import branch_and_move, get_branch_name
 
 
-class IssueTracker():
+class IssueTracker(object):
 
     def __init__(self, config, base_url=None, user=None, password=None):
         self._config = config
@@ -55,7 +55,7 @@ class IssueTracker():
         raise NotImplementedError()
 
     @classmethod
-    def from_remotes(cls, config, remotes):
+    def from_remotes(cls, config, remotes):  # pylint: disable=unused-argument
         return None
 
     @classmethod
@@ -68,7 +68,7 @@ class IssueTracker():
     def parse_args(self):
         return self._get_arg_parser().parse_args()
 
-    def _get_arg_parser(self):
+    def _get_arg_parser(self):  # pylint: disable=no-self-use
         parser = ArgumentParser()
         parser.add_argument("issue", nargs='?',
                             help="Issue to start working on")
@@ -161,15 +161,16 @@ class RepoIssueTracker(IssueTracker):
     @classmethod
     def _from_remotes(cls, config, remotes, domain_has):
         if 'origin' in remotes:
-            parsed = cls._parse(remotes['origin'])
-            if parsed:
-                domain, user, repo = parsed
-                if domain_has is not None and domain_has in domain:
-                    return cls.from_config(config, repo_user=user,
-                                           repo_name=repo)
+            try:
+                domain, user, repo = cls._parse(remotes['origin'])
+            except ValueError:
+                return None
+            if domain_has is not None and domain_has in domain:
+                return cls.from_config(config, repo_user=user, repo_name=repo)
 
     @classmethod
-    def _from_parsed_url(cls, domain, user, repo, config):
+    def _from_parsed_url(cls, domain,  # pylint: disable=unused-argument
+                         user, repo, config):
         return cls.from_config(config, repo_user=user, repo_name=repo)
 
     @classmethod
@@ -178,12 +179,17 @@ class RepoIssueTracker(IssueTracker):
             mobj = re.search(regexp, remote_url)
             if mobj:
                 return mobj.groups()
-        return None
+        raise ValueError("Invalid url")
 
     @classmethod
     def _get_default_url(cls, domain, user, repo):
-        return 'http://{domain}/{user}/{repo}'.format(**locals())
+        return 'http://{domain}/{user}/{repo}'.format(domain=domain, user=user,
+                                                      repo=repo)
 
     @classmethod
-    def from_config(cls, config, repo_user=None, repo_name=None):
+    def from_config(cls, config,  # pylint: disable=arguments-differ
+                    repo_user=None, repo_name=None):
         raise NotImplementedError
+
+    def take_issue(self, issue):
+        IssueTracker.take_issue(self, issue)
