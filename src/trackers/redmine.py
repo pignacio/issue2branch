@@ -46,7 +46,7 @@ class Redmine(IssueTracker):
 
     def get_issues(self):
         params = {
-            'limit': self._config.get("issue_list_limit", 40)
+            'limit': self._config.get("redmine", "list_limit", 40)
         }
         if self._options.mine:
             params['assigned_to_id'] = 'me'
@@ -100,10 +100,8 @@ class Redmine(IssueTracker):
             return default
 
     def take_issue(self, issue):
-        inprogress_id = self._get_from_config_or_die("inprogress_id",
-                                                     "In Progress status id")
-        assignee_id = self._get_from_config_or_die("assignee_id",
-                                                   "Assignee user id")
+        inprogress_id = self._config.get_or_die("redmine", "inprogress_id")
+        assignee_id = self._config.get_or_die("redmine", "assignee_id")
         payload = {'issue': {
             'status_id': inprogress_id,
             'assigned_to_id': assignee_id
@@ -113,13 +111,6 @@ class Redmine(IssueTracker):
         print "Updating issue #{}: {}".format(issue, payload)
         self._request(requests.put, self._get_issue_url(issue),
                       json.dumps(payload), headers=headers)
-
-    def _get_from_config_or_die(self, key, description):
-        try:
-            return self._config[key]
-        except KeyError:
-            raise KeyError("Data for '{}' is missing from config. key:'{}'"
-                           .format(description, key))
 
     def _get_arg_parser(self):
         parser = IssueTracker._get_arg_parser(self)
@@ -133,3 +124,8 @@ class Redmine(IssueTracker):
                             action='store_true', default=False,
                             help='Show all issues, including closed ones')
         return parser
+
+    @classmethod
+    def from_config(cls, config):
+        url = config.get_or_die('redmine', 'url')
+        return cls(config, url)

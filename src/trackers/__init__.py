@@ -21,20 +21,23 @@ ISSUE_TRACKERS = {
 
 
 def get_issue_tracker(config):
-    if "issue_tracker" in config and "issue_tracker_url" in config:
-        issue_tracker_class = ISSUE_TRACKERS[config['issue_tracker']]
-        issue_tracker = issue_tracker_class(config,
-                                            config['issue_tracker_url'],
-                                            config.get('user', None),
-                                            config.get('password', None))
-        return issue_tracker
+    tracker = config.get('main', 'tracker', None)
+    remotes = get_remotes()
+    if tracker:
+        try:
+            issue_tracker_class = ISSUE_TRACKERS[tracker]
+        except KeyError:
+            raise ValueError("'{}' is not a valid issue tracker"
+                             .format(tracker))
+
+        return (issue_tracker_class.from_remotes(config, remotes) or
+                issue_tracker_class.from_config(config))
     else:
         # try to autodeduce issue tracker from repo remotes
-        remotes = get_remotes()
         for issue_tracker_class in ISSUE_TRACKERS.values():
             tracker = issue_tracker_class.from_remotes(config, remotes)
             if tracker:
                 return tracker
-    raise ValueError("Could not get issue tracker type/url from "
-                     "config/remotes. Is the configuration file properly "
-                     "setup? ({})".format(get_config_file()))
+
+    raise ValueError("Could not deduce issue tracker from git remotes, nor "
+                     "it was specified in the config")

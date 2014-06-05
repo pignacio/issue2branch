@@ -16,14 +16,14 @@ from git import branch_and_move, get_branch_name
 
 class IssueTracker():
 
-    def __init__(self, config, base_url, user=None, password=None):
+    def __init__(self, config, base_url=None, user=None, password=None):
         self._config = config
         self._options = None
+        self._user = user or self._config.get('auth', 'user', None)
+        self._password = password or self._config.get('auth', 'password', None)
+        if self._user:
+            self._password = self._password or getpass.getpass()
         self._base_url = base_url
-        self._user = user
-        self._password = None
-        if user:
-            self._password = password if password else getpass.getpass()
 
     def _request(self, method, url, *args, **kwargs):
         auth = (self._user, self._password) if self._user else None
@@ -57,6 +57,10 @@ class IssueTracker():
     @classmethod
     def from_remotes(cls, config, remotes):
         return None
+
+    @classmethod
+    def from_config(cls, config):
+        raise NotImplementedError()
 
     def take_issue(self, issue):
         raise NotImplementedError()
@@ -148,8 +152,8 @@ class RepoIssueTracker(IssueTracker):
     _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
     _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
 
-    def __init__(self, config, base_url, user=None, password=None,
-                 repo_user=None, repo_name=None):
+    def __init__(self, config, base_url, repo_user, repo_name,
+                 user=None, password=None):
         IssueTracker.__init__(self, config, base_url, user, password)
         self._repo_user = repo_user
         self._repo_name = repo_name
@@ -161,17 +165,12 @@ class RepoIssueTracker(IssueTracker):
             if parsed:
                 domain, user, repo = parsed
                 if domain_has is not None and domain_has in domain:
-                    return cls._from_parsed_url(domain, user, repo,
-                                                config)
+                    return cls.from_config(config, repo_user=user,
+                                           repo_name=repo)
 
     @classmethod
     def _from_parsed_url(cls, domain, user, repo, config):
-        base_url = config.get('issue_tracker_url',
-                              cls._get_default_url(domain, user, repo))
-        return cls(config, base_url,
-                   config.get('user', None),
-                   config.get('password', None),
-                   repo_user=user, repo_name=repo)
+        return cls.from_config(config, repo_user=user, repo_name=repo)
 
     @classmethod
     def _parse(cls, remote_url):
@@ -184,3 +183,7 @@ class RepoIssueTracker(IssueTracker):
     @classmethod
     def _get_default_url(cls, domain, user, repo):
         return 'http://{domain}/{user}/{repo}'.format(**locals())
+
+    @classmethod
+    def from_config(cls, config, repo_user=None, repo_name=None):
+        raise NotImplementedError
