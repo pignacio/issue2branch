@@ -3,9 +3,11 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from trackers.base import RepoIssueTracker
 import requests
 import json
+
+
+from .base import RepoIssueTracker
 
 
 class Github(RepoIssueTracker):

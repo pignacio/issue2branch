@@ -6,11 +6,11 @@ Created on May 17, 2014
 import os
 import subprocess
 
-from config import get_config_file
-from repo import get_remotes
-from trackers.bitbucket import Bitbucket
-from trackers.github import Github
-from trackers.redmine import Redmine
+from ..config import get_config_file
+from ..repo import get_remotes
+from .bitbucket import Bitbucket
+from .github import Github
+from .redmine import Redmine
 
 
 ISSUE_TRACKERS = {

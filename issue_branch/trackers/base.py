@@ -4,14 +4,15 @@ Created on May 17, 2014
 @author: ignacio
 '''
 from __future__ import unicode_literals
-import re
+
 
 from argparse import ArgumentParser
 from BeautifulSoup import BeautifulSoup
 import getpass
+import re
 import requests
 
-from repo import branch_and_move, get_branch_name
+from ..repo import branch_and_move, get_branch_name
 
 
 class IssueTracker(object):

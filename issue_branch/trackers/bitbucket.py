@@ -3,7 +3,7 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from trackers.base import RepoIssueTracker
+from .base import RepoIssueTracker
 import requests
 
 

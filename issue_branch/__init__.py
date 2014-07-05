@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-
-from config import get_config
-from trackers import get_issue_tracker
+from .config import get_config
+from .trackers import get_issue_tracker
 
 
 def main():
