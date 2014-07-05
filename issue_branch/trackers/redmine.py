@@ -4,11 +4,14 @@ Created on May 17, 2014
 @author: ignacio
 '''
 from __future__ import unicode_literals
-from trackers.base import IssueTracker
-import requests
+
 import json
+import requests
 import urllib
-import color
+
+from .. import color
+from .base import IssueTracker
+
 
 _PRIORITY_COLORS = {
     'Immediate': color.bright_red,

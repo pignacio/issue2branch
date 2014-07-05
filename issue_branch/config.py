@@ -6,7 +6,7 @@ Created on May 17, 2014
 import os
 from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
 
-from repo import get_git_root
+from .repo import get_git_root
 
 
 CONF_FILE = '.issue_branch.config'
