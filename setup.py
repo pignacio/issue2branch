@@ -64,7 +64,7 @@ setup(
     install_requires=[
         'BeautifulSoup',
         'requests',
-        'GitPython==0.3.1-beta2',
+        'GitPython>=0.3.1',
     ],
 
     # If there are data files included in your packages that need to be
