@@ -9,13 +9,13 @@ from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
 from .repo import get_git_root
 
 
-CONF_FILE = '.issue_branch.config'
-CONF_ENV_VARIABLE = 'ISSUE_BRANCH_CONFIG'
+CONF_FILE = '.issue2branch.config'
+CONF_ENV_VARIABLE = 'ISSUE2BRANCH_CONFIG'
 
 
 class Config(object):
     def __init__(self, fname):
-        print "Loading issue-branch config from: '{}'".format(fname)
+        print "Loading issue2branch config from: '{}'".format(fname)
         self._config = SafeConfigParser()
         self._config.read([fname])
 
