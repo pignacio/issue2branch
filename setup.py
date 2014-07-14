@@ -84,7 +84,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'issue2branch=issue_branch:main',
+            'issue2branch=issue2branch:main',
         ],
     },
 )
