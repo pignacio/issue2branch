@@ -45,12 +45,12 @@ class IssueTracker(object):
         else:
             return BeautifulSoup(response.content)
 
-    def _get_issue_title(self, cotents):
+    def _get_single_issue(self, contents):
         raise NotImplementedError()
 
-    def get_issue_title(self, issue):
+    def get_issue_branch(self, issue):
         contents = self._get_issue_contents(issue)
-        return self._get_issue_title(contents)
+        return self._get_single_issue(contents).branch()
 
     def get_issues(self):
         raise NotImplementedError()
@@ -104,14 +104,27 @@ class IssueTracker(object):
                 print ("[ERROR] Issue list is not implemented for {}"
                        .format(self.__class__))
                 return
-            print "Got {} issues".format(self._count_issues(issues))
+            print "Got {} issues".format(len(issues))
+
+            issues = {issue.issue_id: issue for issue in issues}
+            childs = set()
+
+            for issue_id, issue in issues.items():
+                parent = issue.parent
+                if parent is not None and parent in issues:
+                    issues[parent].childs[issue_id] = issue
+                    childs.add(issue_id)
+
+            for child in childs:
+                del issues[child]
+
             self._list_issues(issues)
         else:
             print ("Getting issue title for issue: "
                    "'{}'".format(self._options.issue))
-            title = self.get_issue_title(self._options.issue)
-            print "Got title: '{}'".format(title)
-            branch = get_branch_name(title)
+            branch = self.get_issue_branch(self._options.issue)
+            print "Got branch: '{}'".format(branch)
+            branch = get_branch_name(branch)
             _op("Branching '{}'".format(branch),
                 branch_and_move, branch)
 
@@ -125,27 +138,18 @@ class IssueTracker(object):
 
     @classmethod
     def _list_issues(cls, issues, indent=0):
-        for issue_id, issue_data in sorted(issues.items()):
-            try:
-                text = issue_data['text']
-                childs = issue_data.get('childs', {})
-            except (KeyError, TypeError, AttributeError):
-                text = issue_data
-                childs = {}
-            print "{} * {} - {}".format("  " * indent, issue_id, text)
-            cls._list_issues(childs, indent=indent + 1)
+        for issue_id, issue in sorted(issues.items()):
+            print "{} * {}".format("  " * indent, issue.text())
+            cls._list_issues(issue.childs, indent=indent + 1)
 
-    @classmethod
-    def _count_issues(cls, issues):
-        def _get_childs(data):
+    @staticmethod
+    def _extract_or_none(json_obj, *keys):
+        for key in keys:
             try:
-                return data.get('childs', {})
-            except AttributeError:
-                return {}
-
-        return (len(issues) +
-                sum(cls._count_issues(_get_childs(data))
-                    for data in issues.values()))
+                json_obj = json_obj[key]
+            except (KeyError, TypeError):
+                return None
+        return json_obj
 
 
 class RepoIssueTracker(IssueTracker):

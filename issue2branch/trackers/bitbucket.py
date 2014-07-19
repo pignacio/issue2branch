@@ -3,14 +3,17 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from .base import RepoIssueTracker
 import requests
+
+from .base import RepoIssueTracker
+from ..issue import Issue
 
 
 class Bitbucket(RepoIssueTracker):
 
-    def _get_issue_title(self, contents):
-        return "{} {}".format(contents['local_id'], contents['title'])
+    def _get_single_issue(self, contents):
+        issue = Issue(contents['local_id'], contents['title'])
+        return issue
 
     @classmethod
     def from_remotes(cls, config, remotes):
@@ -23,8 +26,7 @@ class Bitbucket(RepoIssueTracker):
     def get_issues(self):
         issues = self._api_get("repositories/{}/{}/issues"
                                .format(self._repo_user, self._repo_name))
-        return {issue['local_id']: issue['title']
-                for issue in issues['issues']}
+        return [self._get_single_issue(issue) for issue in issues['issues']]
 
     @staticmethod
     def _api_url(path):

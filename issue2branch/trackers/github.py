@@ -6,19 +6,24 @@ Created on May 17, 2014
 import requests
 import json
 
-
 from .base import RepoIssueTracker
+from ..issue import Issue
 
+_VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
+                  'new feature'))
 
 class Github(RepoIssueTracker):
-
-    def _get_issue_title(self, contents):
-        return "Issue {} {}".format(contents['number'], contents['title'])
+    def _get_single_issue(self, contents):
+        issue = Issue(contents['number'], contents['title'])
+        issue.assignee = self._extract_or_none(contents, "assignee", "login")
+        issue.tag = self._first_label(self._extract_or_none(contents, 'labels'),
+                                      _VALID_TAGS)
+        return issue
 
     def get_issues(self):
         issues = self._api_get("repos/{}/{}/issues".format(self._repo_user,
                                                            self._repo_name))
-        return {issue['number']: issue['title'] for issue in issues}
+        return [self._get_single_issue(issue) for issue in issues]
 
     def take_issue(self, issue):
         url = self._get_issue_url(issue)
@@ -54,3 +59,14 @@ class Github(RepoIssueTracker):
         repo_name = config.get_or_die('github', 'repo_name', default=repo_name)
         base_url = cls._get_default_url("github.com", repo_user, repo_name)
         return cls(config, base_url, repo_user, repo_name)
+
+    @staticmethod
+    def _first_label(labels, valid_labels):
+        if not labels:
+            return None
+        for label in labels:
+            name = label['name']
+            if name.lower() in valid_labels:
+                return name
+        return None
+
