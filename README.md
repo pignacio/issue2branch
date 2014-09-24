@@ -44,9 +44,11 @@ issue2branch <issue> --noop  # -n/--noop runs dry (without making changes)
 Redmine supports additional parameters:
 
 ```
-issue2branch --list --mine       # -m/--mine shows only tickes assigned to you
-issue2branch --list -v <version> # -v/--version filters by target version
+issue2branch --list --mine       # -m/--mine show only tickes assigned to you
+issue2branch --list -v <version> # -v/--version filter by target version
 issue2branch --list --all        # List all (including closed) issues
+issue2branch --project myproject # -p/--project filter issues by project
+issue2branch --all-projects      # Show all projects
 ```
 
 ##Supported issue trackers
@@ -81,6 +83,7 @@ inprogress_id = Internal redmine ID for the "In progress" status. Needed for
                 --take
 assignee_id = Internal redmine ID for the assignee. Needed for --take
 list_limit = number of issues to retrieve when listing. Defaults to 40
+project = Only show issues from this project
 
 [github] # Github specific config
 repo_user = the owner of the issue tracker. Useful for overriding real owner

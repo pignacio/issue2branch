@@ -11,22 +11,8 @@ import urllib
 
 from .. import color
 from .base import IssueTracker
+from ..issue import Issue
 
-
-_PRIORITY_COLORS = {
-    'Immediate': color.bright_red,
-    'Urgent': color.red,
-    'High': color.bright_yellow,
-    'Normal': color.bright_blue,
-    'Low': color.green,
-}
-
-_STATUS_COLORS = {
-    'New': color.bright_yellow,
-    'In Progress': color.bright_cyan,
-    'Resolved': color.green,
-    'Closed': color.bright_green,
-}
 
 
 def _format(value, format_dict):
@@ -38,14 +24,30 @@ def _format(value, format_dict):
 
 
 class Redmine(IssueTracker):
-
     def _get_issue_url(self, issue):
         return IssueTracker._get_issue_url(self, issue) + ".json"
 
-    def _get_issue_title(self, contents):
-        issue = contents['issue']
-        tracker = issue['tracker']['name']
-        return "{} {} {}".format(tracker, issue['id'], issue['subject'])
+    def _get_single_issue(self, contents):
+        return self._get_issue(contents['issue'])
+
+    def _get_issue(self, issue_data):
+        issue = Issue(issue_data['id'], issue_data['subject'])
+        issue.tag = self._extract_or_none(issue_data, 'tracker', 'name')
+        issue.parent = self._extract_or_none(issue_data, 'parent', 'id')
+        issue.status = self._get_field_name(issue_data, "status")
+        issue.priority = self._get_field_name(issue_data, "priority")
+        issue.assignee = self._get_field_name(issue_data, "assigned_to",
+                                              None)
+        issue.project = self._extract_or_none(issue_data, 'project', 'name')
+        return  issue
+
+    def _get_project(self):
+        project = self._config.get('redmine', 'project', None)
+        if self._options.project:
+            project = self._options.project
+        if self._options.all_projects:
+            project = None
+        return project
 
     def get_issues(self):
         params = {
@@ -57,42 +59,20 @@ class Redmine(IssueTracker):
             params['fixed_version_id'] = self._options.version
         if self._options.all:
             params['status_id'] = "*"
-        url = "{}/issues.json?{}".format(self._base_url,
+        project = self._get_project()
+        base_url = (self._base_url if project is None
+                    else "{}/projects/{}".format(self._base_url, project))
+        url = "{}/issues.json?{}".format(base_url,
                                          urllib.urlencode(params))
         response = self._request(requests.get, url)
         if response.status_code != 200:
             raise ValueError("Redmine API responded {} != 200 for '{}'"
                              .format(response.status_code, url))
         issues_json = response.json()['issues']
-        issues = {}
+        issues = []
         for json_data in issues_json:
-            data = {}
-            try:
-                data['parent'] = json_data['parent']['id']
-            except KeyError:
-                data['parent'] = None
-            status = self._get_field_name(json_data, "status")
-            status = _format(status, _STATUS_COLORS)
-            priority = self._get_field_name(json_data, "priority")
-            priority = _format(priority, _PRIORITY_COLORS)
-            assignee = self._get_field_name(json_data, "assigned_to",
-                                            "Not assigned")
-            data['text'] = "[{}/{}] - {} - ({})".format(priority, status,
-                                                        json_data['subject'],
-                                                        assignee)
-            data['childs'] = {}
-            issues[json_data['id']] = data
-
-        childs = set()
-
-        for issue, data in issues.items():
-            parent = data['parent']
-            if parent is not None and parent in issues:
-                issues[parent]['childs'][issue] = data
-                childs.add(issue)
-
-        for child in childs:
-            del issues[child]
+            issue = self._get_issue(json_data)
+            issues.append(issue)
 
         return issues
 
@@ -127,6 +107,14 @@ class Redmine(IssueTracker):
         parser.add_argument("-a", "--all",
                             action='store_true', default=False,
                             help='Show all issues, including closed ones')
+        parser.add_argument("-p", "--project",
+                            action='store', default=None,
+                            help=('Show only issues from a given project. '
+                                  'Overrides redmine.project config.'))
+        parser.add_argument("--all-projects",
+                            action='store_true', default=False,
+                            help=('Show all projects\' issues. '
+                                  'Overrides redmine.project config.'))
         return parser
 
     @classmethod
