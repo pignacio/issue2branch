@@ -41,6 +41,14 @@ class Redmine(IssueTracker):
         issue.project = self._extract_or_none(issue_data, 'project', 'name')
         return  issue
 
+    def _get_project(self):
+        project = self._config.get('redmine', 'project', None)
+        if self._options.project:
+            project = self._options.project
+        if self._options.all_projects:
+            project = None
+        return project
+
     def get_issues(self):
         params = {
             'limit': self._config.get("redmine", "list_limit", 40)
@@ -51,7 +59,10 @@ class Redmine(IssueTracker):
             params['fixed_version_id'] = self._options.version
         if self._options.all:
             params['status_id'] = "*"
-        url = "{}/issues.json?{}".format(self._base_url,
+        project = self._get_project()
+        base_url = (self._base_url if project is None
+                    else "{}/projects/{}".format(self._base_url, project))
+        url = "{}/issues.json?{}".format(base_url,
                                          urllib.urlencode(params))
         response = self._request(requests.get, url)
         if response.status_code != 200:
@@ -96,6 +107,14 @@ class Redmine(IssueTracker):
         parser.add_argument("-a", "--all",
                             action='store_true', default=False,
                             help='Show all issues, including closed ones')
+        parser.add_argument("-p", "--project",
+                            action='store', default=None,
+                            help=('Show only issues from a given project. '
+                                  'Overrides redmine.project config.'))
+        parser.add_argument("--all-projects",
+                            action='store_true', default=False,
+                            help=('Show all projects\' issues. '
+                                  'Overrides redmine.project config.'))
         return parser
 
     @classmethod
