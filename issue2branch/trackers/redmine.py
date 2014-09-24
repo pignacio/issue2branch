@@ -37,7 +37,7 @@ class Redmine(IssueTracker):
         issue.status = self._get_field_name(issue_data, "status")
         issue.priority = self._get_field_name(issue_data, "priority")
         issue.assignee = self._get_field_name(issue_data, "assigned_to",
-                                              "Not assigned")
+                                              None)
         issue.project = self._extract_or_none(issue_data, 'project', 'name')
         return  issue
 
