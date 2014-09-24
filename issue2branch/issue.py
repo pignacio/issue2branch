@@ -1,9 +1,9 @@
 from .format import colorize
-from .color import green
+from .color import green, magenta
 
 class Issue(object):
     def __init__(self, issue_id, title, tag=None, parent=None, priority=None,
-                 status=None, assignee=None):
+                 status=None, assignee=None, project=None):
         self.issue_id = issue_id
         self.title = title
         self.tag = tag
@@ -12,21 +12,27 @@ class Issue(object):
         self.priority = priority
         self.status = status
         self.assignee = assignee
+        self.project = project
 
     def text(self):
         if self.priority or self.status:
             texts = [colorize(t) for t in (self.priority, self.status, ) if t]
-            status = "[{}] - ".format("/".join(texts))
+            status = " [{}] -".format("/".join(texts))
         else:
             status = ""
-        tag = colorize("{}: ".format(self.tag), self.tag)
+        tag = colorize(" {}: ".format(self.tag), self.tag)
         if self.assignee:
             assignee = green("({})".format(self.assignee))
             assignee = " - {}".format(assignee)
         else:
             assignee = ""
-        return "{} - {}{}{}{}".format(self.issue_id, status, tag, self.title,
-                                    assignee)
+        if self.project:
+            project = magenta(" {{{}}}".format(self.project))
+        else:
+            project = ''
+
+        return "{} -{}{}{}{}{}".format(self.issue_id, status, project, tag,
+                                        self.title, assignee)
 
     def branch(self):
         return "{}-{}-{}".format(self.tag, self.issue_id, self.title)
