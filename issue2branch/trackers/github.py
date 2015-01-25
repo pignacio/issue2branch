@@ -3,15 +3,15 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-import requests
 import json
+import requests
 import urllib
 
 from .base import RepoIssueTracker
 from ..issue import Issue
 
 _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
-                  'new feature'))
+                   'new feature'))
 
 class Github(RepoIssueTracker):
     def _get_single_issue(self, contents):

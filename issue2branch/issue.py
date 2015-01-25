@@ -32,7 +32,7 @@ class Issue(object):
             project = ''
 
         return "{} -{}{}{}{}{}".format(self.issue_id, status, project, tag,
-                                        self.title, assignee)
+                                       self.title, assignee)
 
     def branch(self):
         return "{}-{}-{}".format(self.tag, self.issue_id, self.title)

@@ -9,7 +9,6 @@ import json
 import requests
 import urllib
 
-from .. import color
 from .base import IssueTracker
 from ..issue import Issue
 

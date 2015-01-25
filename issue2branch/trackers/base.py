@@ -151,7 +151,7 @@ class IssueTracker(object):
 
     @classmethod
     def _list_issues(cls, issues, indent=0):
-        for issue_id, issue in sorted(issues.items()):
+        for dummy_issue_id, issue in sorted(issues.items()):
             print "{} * {}".format("  " * indent, issue.text())
             cls._list_issues(issue.childs, indent=indent + 1)
 
