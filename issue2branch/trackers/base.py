@@ -16,6 +16,7 @@ from ..repo import branch_and_move, get_branch_name
 
 
 class IssueTracker(object):
+    _DEFAULT_LIST_LIMIT = 40
 
     def __init__(self, config, base_url=None, user=None, password=None):
         self._config = config
@@ -52,7 +53,7 @@ class IssueTracker(object):
         contents = self._get_issue_contents(issue)
         return self._get_single_issue(contents).branch()
 
-    def get_issues(self):
+    def get_issues(self, limit):
         raise NotImplementedError()
 
     @classmethod
@@ -76,6 +77,9 @@ class IssueTracker(object):
         parser.add_argument("-l", "--list",
                             action='store_true', default=False,
                             help="List current issues")
+        parser.add_argument("--limit",
+                            action='store', type=int, default=None,
+                            help="Limit --list size to this value")
         parser.add_argument("-n", "--noop",
                             action='store_true', default=False,
                             help="Show branch name but don't create it")
@@ -83,6 +87,15 @@ class IssueTracker(object):
                             action='store_true', default=False,
                             help="Sets yourself as the assignee, if possible")
         return parser
+
+    def _get_list_limit(self):
+        if self._options.limit is None:
+            limit = self._config.get('list', 'limit', self._DEFAULT_LIST_LIMIT)
+        else:
+            limit = self._options.limit
+        if limit <= 0:
+            raise ValueError("List limit must be positive: {}".format(limit))
+        return limit
 
     def run(self):
         self._options = self.parse_args()
@@ -99,7 +112,7 @@ class IssueTracker(object):
 
         if self._options.list:
             try:
-                issues = self.get_issues()
+                issues = self.get_issues(self._get_list_limit())
             except NotImplementedError:
                 print ("[ERROR] Issue list is not implemented for {}"
                        .format(self.__class__))

@@ -49,9 +49,9 @@ class Redmine(IssueTracker):
             project = None
         return project
 
-    def get_issues(self):
+    def get_issues(self, limit):
         params = {
-            'limit': self._config.get("redmine", "list_limit", 40)
+            'limit': limit,
         }
         if self._options.mine:
             params['assigned_to_id'] = 'me'
