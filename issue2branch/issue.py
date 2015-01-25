@@ -6,6 +6,7 @@ class Issue(object):
                  status=None, assignee=None, project=None):
         self.issue_id = issue_id
         self.title = title
+        self._tag = None
         self.tag = tag
         self.parent = parent
         self.childs = {}
@@ -32,7 +33,7 @@ class Issue(object):
             project = ''
 
         return "{} -{}{}{}{}{}".format(self.issue_id, status, project, tag,
-                                        self.title, assignee)
+                                       self.title, assignee)
 
     def branch(self):
         return "{}-{}-{}".format(self.tag, self.issue_id, self.title)
