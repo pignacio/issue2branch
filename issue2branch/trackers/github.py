@@ -3,14 +3,15 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-import requests
 import json
+import requests
+import urllib
 
 from .base import RepoIssueTracker
 from ..issue import Issue
 
 _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
-                  'new feature'))
+                   'new feature'))
 
 class Github(RepoIssueTracker):
     def _get_single_issue(self, contents):
@@ -20,9 +21,15 @@ class Github(RepoIssueTracker):
                                       _VALID_TAGS)
         return issue
 
-    def get_issues(self):
-        issues = self._api_get("repos/{}/{}/issues".format(self._repo_user,
-                                                           self._repo_name))
+    def get_issues(self, limit):
+        params = {
+            'per_page': limit,
+        }
+        issues = self._api_get("repos/{}/{}/issues?{}".format(
+            self._repo_user,
+            self._repo_name,
+            urllib.urlencode(params)
+        ))
         return [self._get_single_issue(issue) for issue in issues]
 
     def take_issue(self, issue):

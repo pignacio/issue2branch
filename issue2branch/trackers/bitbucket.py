@@ -3,6 +3,8 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
+import urllib
+
 import requests
 
 from .base import RepoIssueTracker
@@ -23,9 +25,13 @@ class Bitbucket(RepoIssueTracker):
     def _get_default_url(cls, domain, user, repo):
         return cls._api_url("repositories/{user}/{repo}".format(**locals()))
 
-    def get_issues(self):
-        issues = self._api_get("repositories/{}/{}/issues"
-                               .format(self._repo_user, self._repo_name))
+    def get_issues(self, limit):
+        params = {
+            'limit': self._get_list_limit()
+        }
+        issues = self._api_get("repositories/{}/{}/issues?{}".format(
+            self._repo_user, self._repo_name, urllib.urlencode(params)
+        ))
         return [self._get_single_issue(issue) for issue in issues['issues']]
 
     @staticmethod

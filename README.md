@@ -33,6 +33,7 @@ pip install issue2branch
 
 ```
 issue2branch --list          # -l/--list show the current open issues
+issue2branch -l --limit 50   # --limit the amount of issues listed
 issue2branch <issue>         # Fetch the <issue> title and checkout a branch
 issue2branch <issue> --take  # Additionally, set yourself as the assignee, when
                              # possible
@@ -77,12 +78,15 @@ user = HTTP authentication user
 password = HTTP authentication password, if missing when user is present, a
            prompt will ask for it each time issue2branch is run
 
+[list]  # --list options
+limit = number of issues to retrieve when listing. Defaults to 40.
+        Is overrided at runtime via the --limit argument
+
 [redmine] # Redmine specific config
 url = url where the issue tracker is located
 inprogress_id = Internal redmine ID for the "In progress" status. Needed for
                 --take
 assignee_id = Internal redmine ID for the assignee. Needed for --take
-list_limit = number of issues to retrieve when listing. Defaults to 40
 project = Only show issues from this project
 
 [github] # Github specific config
