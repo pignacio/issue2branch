@@ -6,6 +6,7 @@ class Issue(object):
                  status=None, assignee=None, project=None):
         self.issue_id = issue_id
         self.title = title
+        self._tag = None
         self.tag = tag
         self.parent = parent
         self.childs = {}
