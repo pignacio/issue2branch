@@ -14,7 +14,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.0.3',
+    version='0.0.4',
 
     description='A feature branch namer / Issue tracker manager',
     long_description=long_description,
@@ -64,7 +64,7 @@ setup(
     install_requires=[
         'BeautifulSoup',
         'requests',
-        'GitPython>=0.3.1',
+        'GitPython>=0.3.6',
     ],
 
     # If there are data files included in your packages that need to be
