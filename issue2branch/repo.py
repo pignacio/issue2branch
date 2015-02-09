@@ -12,7 +12,7 @@ BRANCH_NAME_RE = r"[a-zA-Z0-9#]+"
 
 def _get_repo():
     try:
-        return git.Repo(".")
+        return git.Repo(".", search_parent_directories=True)
     except git.exc.InvalidGitRepositoryError:
         raise ValueError("Current directory '{}' does not belong to a git "
                          "repository".format(os.path.abspath(".")))
