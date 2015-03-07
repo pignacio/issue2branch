@@ -15,6 +15,7 @@ class Bitbucket(RepoIssueTracker):
 
     def _get_single_issue(self, contents):
         issue = Issue(contents['local_id'], contents['title'])
+        issue.description = contents['content']
         return issue
 
     @classmethod

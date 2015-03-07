@@ -15,7 +15,8 @@ _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
 
 class Github(RepoIssueTracker):
     def _get_single_issue(self, contents):
-        issue = Issue(contents['number'], contents['title'])
+        issue = Issue(contents['number'], contents['title'],
+                      description=contents['body'])
         issue.assignee = self._extract_or_none(contents, "assignee", "login")
         issue.tag = self._first_label(self._extract_or_none(contents, 'labels'),
                                       _VALID_TAGS)
@@ -76,4 +77,3 @@ class Github(RepoIssueTracker):
             if name.lower() in valid_labels:
                 return name
         return None
-

@@ -38,6 +38,7 @@ class Redmine(IssueTracker):
         issue.assignee = self._get_field_name(issue_data, "assigned_to",
                                               None)
         issue.project = self._extract_or_none(issue_data, 'project', 'name')
+        issue.description = issue_data['description']
         return  issue
 
     def _get_project(self):
