@@ -13,7 +13,7 @@ import re
 import requests
 
 from ..repo import branch_and_move, get_branch_name
-
+from ..format import colorize
 
 class IssueTracker(object):
     _DEFAULT_LIST_LIMIT = 40
@@ -36,6 +36,7 @@ class IssueTracker(object):
         return "{}/issues/{}".format(self._base_url, issue)
 
     def _get_issue_contents(self, issue):
+        ''' Fetch the issue contents. '''
         url = self._get_issue_url(issue)
         response = self._request(requests.get, url)
         if response.status_code != 200:
@@ -47,6 +48,7 @@ class IssueTracker(object):
             return BeautifulSoup(response.content)
 
     def _get_single_issue(self, contents):
+        ''' Build a `issue.Issue` from the issue contents. '''
         raise NotImplementedError()
 
     def get_issue_branch(self, issue):
@@ -86,6 +88,9 @@ class IssueTracker(object):
         parser.add_argument("-t", "--take",
                             action='store_true', default=False,
                             help="Sets yourself as the assignee, if possible")
+        parser.add_argument("-s", "--show",
+                            default=None,
+                            help="Show the issue on screen")
         return parser
 
     def _get_list_limit(self):
@@ -100,8 +105,9 @@ class IssueTracker(object):
     def run(self):
         self._options = self.parse_args()
 
-        if not any([self._options.issue, self._options.list]):
-            raise ValueError("Must supply an issue or -l/--list")
+        if not any([self._options.issue, self._options.list,
+                    self._options.show]):
+            raise ValueError("Must supply an issue, -s/--show or -l/--list")
 
         def _op(message, callback, *args, **kwargs):
             if self._options.noop:
@@ -132,6 +138,18 @@ class IssueTracker(object):
                 del issues[child]
 
             self._list_issues(issues)
+        elif self._options.show is not None:
+            print "Showing issue {}".format(self._options.show)
+            contents = self._get_issue_contents(self._options.show)
+            issue = self._get_single_issue(contents)
+            print
+            print "{} #{}: {}".format(colorize(issue.tag), issue.issue_id,
+                                      issue.title)
+            print
+            if issue.description is not None:
+                print issue.description
+            else:
+                print "<No description>"
         else:
             print ("Getting issue title for issue: "
                    "'{}'".format(self._options.issue))

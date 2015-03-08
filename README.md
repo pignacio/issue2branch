@@ -24,8 +24,9 @@ pip install issue2branch
 ##Usage
 
 ```
-issue2branch --list          # -l/--list show the current open issues
+issue2branch --list          # -l/--list: show the current open issues
 issue2branch -l --limit 50   # --limit the amount of issues listed
+issue2branch -s <issue>      # -s/--show: print the issue description
 issue2branch <issue>         # Fetch the <issue> title and checkout a branch
 issue2branch <issue> --take  # Additionally, set yourself as the assignee, when
                              # possible
