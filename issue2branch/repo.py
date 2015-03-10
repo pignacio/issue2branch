@@ -7,6 +7,9 @@ import re
 import os
 import git
 
+from .objects import RepoData, RemoteData
+
+
 BRANCH_NAME_RE = r"[a-zA-Z0-9#]+"
 
 
@@ -35,3 +38,17 @@ def branch_and_move(branch):
 
 def get_branch_name(title):
     return "-".join(re.findall(BRANCH_NAME_RE, title)).lower()
+
+
+_SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
+_HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
+
+
+def parse_remote_url(remote_url):
+    for regexp in [_SSH_RE, _HTTP_RE]:
+        mobj = re.search(regexp, remote_url)
+        if mobj:
+            domain, user, name = mobj.groups()
+            return RemoteData(domain=domain, repo=RepoData(user=user,
+                                                           name=name))
+    raise ValueError("Invalid remote url: '{}'".format(remote_url))
