@@ -13,11 +13,18 @@ CONF_FILE = '.issue2branch.config'
 CONF_ENV_VARIABLE = 'ISSUE2BRANCH_CONFIG'
 
 
+
+
 class Config(object):
-    def __init__(self, fname):
+    def __init__(self, config):
+        self._config = config
+
+    @classmethod
+    def from_filename(cls, fname):
         print "Loading issue2branch config from: '{}'".format(fname)
-        self._config = SafeConfigParser()
-        self._config.read([fname])
+        config = SafeConfigParser()
+        config.read([fname])
+        return cls(config)
 
     def get(self, section, option, default):
         try:
@@ -45,4 +52,4 @@ def get_config_file():
 
 
 def get_config():
-    return Config(get_config_file())
+    return Config.from_filename(get_config_file())
