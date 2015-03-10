@@ -26,16 +26,23 @@ class Config(object):
         config.read([fname])
         return cls(config)
 
-    def get(self, section, option, default):
+    def get(self, section, option, default, coerce=None):  # pylint: disable=redefined-builtin
         try:
-            return self._config.get(section, option)
+            value = self._config.get(section, option)
         except (NoSectionError, NoOptionError):
             return default
+        if coerce:
+            try:
+                value = coerce(value)
+            except Exception:  #pylint: broad-except
+                raise ValueError("Config @ {}:{} is not an {}".format(
+                    section, option, coerce))
+        return value
 
-    def get_or_die(self, section, option, default=None):
+    def get_or_die(self, section, option, default=None, **kwargs):
 
         try:
-            return self._config.get(section, option)
+            return self._config.get(section, option, **kwargs)
         except (NoSectionError, NoOptionError):
             if default is not None:
                 return default
