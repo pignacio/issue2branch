@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+# encoding: utf-8
+from __future__ import absolute_import, unicode_literals
+
+__all__ = [
+    'black', 'bright_black',
+    'red', 'bright_red',
+    'green', 'bright_green',
+    'yellow', 'bright_yellow',
+    'blue', 'bright_blue',
+    'magenta', 'bright_magenta',
+    'cyan', 'bright_cyan',
+    'white', 'bright_white',
+]
+
 _COLOR_CODE = '\033[{}m'
 
 
