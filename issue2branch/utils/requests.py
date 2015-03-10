@@ -24,14 +24,17 @@ class NotOkResponse(Exception):
 
 
 def request(method, url, user=None, password=None, **kwargs):
-    logger.info("Requesting: %s:%s", method, url)
+    logger.info("Requesting: %s:%s", method.__name__, url)
     if user:
         kwargs['auth'] = (user, password)
     response = method(url, **kwargs)
-    logging.debug("Response status code: %s", response.status_code)
+    logger.debug("Response status code: %s", response.status_code)
     if not 200 <= response.status_code < 300:
-        raise NotOkResponse("Response status code was not 2xx: {}"
-                            .format(response.status_code), response)
+        used_auth = bool(kwargs.get('auth', None))
+        raise NotOkResponse(("Response status code for '{}' was not 2xx: {}. "
+                             "Authenticated: {}").format(
+                                 url, response.status_code, used_auth
+                             ), response)
     return response
 
 
