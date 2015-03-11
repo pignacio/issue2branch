@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# pylint: disable=protected-access,line-too-long,invalid-name
+# pylint: disable=too-many-instance-attributes
 from __future__ import absolute_import, unicode_literals
 
 import logging
@@ -34,6 +36,10 @@ class ParseRemoteTest(TestCase):
     def test_invalid_url_raises(self):
         self.assertRaisesRegexp(ValueError, 'Invalid remote url',
                                 parse_remote_url, 'invalid_url')
+
+    def test_none_argument_raises_valueerror(self):
+        self.assertRaisesRegexp(ValueError, 'Invalid remote url',
+                                parse_remote_url, None)
 
 
 class GetBranchNameTest(TestCase):

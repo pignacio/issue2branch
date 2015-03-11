@@ -45,6 +45,8 @@ _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
 
 
 def parse_remote_url(remote_url):
+    if remote_url is None:
+        raise ValueError("Invalid remote url: '{}'".format(remote_url))
     for regexp in [_SSH_RE, _HTTP_RE]:
         mobj = re.search(regexp, remote_url)
         if mobj:
