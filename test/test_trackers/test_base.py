@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#pylint: disable=protected-access,line-too-long,invalid-name
+# pylint: disable=protected-access,line-too-long,invalid-name
+# pylint: disable=too-many-instance-attributes
 from __future__ import absolute_import, unicode_literals
 
 import argparse
@@ -176,20 +177,20 @@ password = the_password
         eq_(self.init_mock.call_args[0][0], tracker)
 
     def test_user_is_set_from_config(self):
-        tracker = IssueTracker.create(self.config)
+        IssueTracker.create(self.config)
         eq_(self.init_mock.call_args[1]['user'], 'the_username')
 
     def test_password_is_set_from_config(self):
-        tracker = IssueTracker.create(self.config)
+        IssueTracker.create(self.config)
         eq_(self.init_mock.call_args[1]['user'], 'the_username')
 
     def test_user_kwarg_overrides_config(self):
-        tracker = IssueTracker.create(self.config, user=sentinel.other_username)
+        IssueTracker.create(self.config, user=sentinel.other_username)
         eq_(self.init_mock.call_args[1]['user'], sentinel.other_username)
 
     def test_password_kwarg_overrides_config(self):
-        tracker = IssueTracker.create(self.config,
-                                      password=sentinel.other_password)
+        IssueTracker.create(self.config,
+                            password=sentinel.other_password)
         eq_(self.init_mock.call_args[1]['password'], sentinel.other_password)
 
 
@@ -201,7 +202,7 @@ def _exit_replace(_status, msg):
     raise ExitCalled(msg)
 
 
-class IssueTrakerParseArgs(TestCase):
+class IssueTrackerParseArgs(TestCase):
     def setUp(self):
         self.parser = IssueTracker.get_arg_parser()
         self.parser.exit = _exit_replace
@@ -273,7 +274,7 @@ class IssueTrakerParseArgs(TestCase):
 
 def test_issue_tracker_parse_args():
     parser_mock = create_autospec(argparse.ArgumentParser)
-    class Tracker(IssueTracker):  # pylint: disable=all
+    class Tracker(IssueTracker): # pylint: disable=abstract-method,too-few-public-methods
         pass
 
     Tracker.get_arg_parser = Mock()
@@ -439,6 +440,3 @@ class RepoIssueTrackerCreateTests(TestCase):
         RepoIssueTracker.create(self.config, sentinel.remote)
         self.mock_parse_remote.assert_called_once_with(sentinel.remote)
 
-    def test_password_is_set_from_config(self):
-        tracker = IssueTracker.create(self.config)
-        eq_(self.init_mock.call_args[1]['user'], 'the_username')
