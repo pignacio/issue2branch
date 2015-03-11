@@ -5,15 +5,16 @@ from __future__ import absolute_import, unicode_literals
 
 import argparse
 import logging
-from unittest import TestCase
 
 from mock import patch, create_autospec, sentinel, Mock
 from nose.tools import eq_
 import requests
 
-from issue2branch.trackers.base import IssueTracker
+from issue2branch.trackers.base import IssueTracker, RepoIssueTracker
 
-from ..utils import config_from_string, mock_properties
+from ..mock_objects import MockRepoData, MockRemoteData
+from ..utils import config_from_string, mock_properties, TestCase
+
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
@@ -378,35 +379,65 @@ def test_issuetracker_matches_remote():
 class RepoIssueTrackerCreateTests(TestCase):
     def setUp(self):
         self.config = config_from_string('')
-        self.init_patcher = patch(
-            'issue2branch.trackers.base.RepoIssueTracker.__init__', autospec=True)
-        self.repo_from_config_patcher = patch(
-            'issue2branch.trackers.base.RepoIssueTracker.get_repo_data_from_config', autospec=True)
+        self.mock_parse_remote = self.patch(
+            'issue2branch.trackers.base.parse_remote_url', autospec=True)
 
-        self.init_mock = self.init_patcher.start()
-        self.init_mock.return_value = None
-        self.repo_from_config_mock = self.repo_from_config_patcher.start()
+        self.mock_parse_remote.return_value = MockRemoteData(
+            repo=MockRepoData(user=sentinel.user, name=sentinel.name))
 
-    def tearDown(self):
-        self.init_patcher.stop()
-        self.repo_from_config_patcher.stop()
-
-    @patch('issue2branch.trackers.base.IssueTracker.create', autospec=True)
+    @patch.object(IssueTracker, 'create')
     def test_proxies_parent_create(self, mock_create):
         mock_create.return_value = sentinel.tracker
 
         tracker = RepoIssueTracker.create(self.config)
+
         eq_(mock_create.called, True, "IssueTracker.create was not called")
         eq_(mock_create.call_args[0][0], self.config)
+        eq_(tracker, sentinel.tracker)
 
-    def test_create_proxies_init(self):
+    @patch.object(RepoIssueTracker, 'get_repo_data_from_config')
+    def test_loads_config_repo_data(self, mock_get_data):
+        mock_get_data.return_value = MockRepoData(user=sentinel.repo_user,
+                                                  name=sentinel.repo_name)
+
         tracker = RepoIssueTracker.create(self.config)
-        eq_(self.init_mock.called, True, '__init__ was not called on create')
-        eq_(self.init_mock.call_args[0][0], tracker)
 
-    def test_user_is_set_from_config(self):
-        tracker = IssueTracker.create(self.config)
-        eq_(self.init_mock.call_args[1]['user'], 'the_username')
+        mock_get_data.assert_called_once_with(self.config)
+        eq_(tracker.repo_user, sentinel.repo_user)
+        eq_(tracker.repo_name, sentinel.repo_name)
+
+    @patch('issue2branch.trackers.base.parse_remote_url', autospec=True)
+    def test_loads_remote_repo_data(self, mock_parse_remote):
+        mock_parse_remote.return_value = MockRemoteData(
+            repo=MockRepoData(user=sentinel.remote_user,
+                              name=sentinel.remote_name))
+
+        tracker = RepoIssueTracker.create(self.config, remote=sentinel.remote)
+
+        mock_parse_remote.assert_called_once_with(sentinel.remote)
+        eq_(tracker.repo_user, sentinel.remote_user)
+        eq_(tracker.repo_name, sentinel.remote_name)
+
+    @patch.object(RepoIssueTracker, 'get_repo_data_from_config')
+    @patch('issue2branch.trackers.base.parse_remote_url', autospec=True)
+    def test_config_repo_data_overrides_remote(self, mock_parse_remote, mock_get_data):
+        mock_get_data.return_value = MockRepoData(user=sentinel.config_user,
+                                                  name=sentinel.config_name)
+        mock_parse_remote.return_value = MockRemoteData(
+            repo=MockRepoData(user=sentinel.remote_user,
+                              name=sentinel.remote_name))
+
+        tracker = RepoIssueTracker.create(self.config, remote=sentinel.remote)
+
+        mock_get_data.assert_called_once_with(self.config)
+        mock_parse_remote.assert_called_once_with(sentinel.remote)
+        eq_(tracker.repo_user, sentinel.config_user)
+        eq_(tracker.repo_name, sentinel.config_name)
+
+    def test_works_when_parse_remote_url_fails(self):
+        self.mock_parse_remote.side_effect = ValueError()
+        RepoIssueTracker.create(self.config, sentinel.remote)
+        self.mock_parse_remote.assert_called_once_with(sentinel.remote)
 
     def test_password_is_set_from_config(self):
         tracker = IssueTracker.create(self.config)
