@@ -440,3 +440,24 @@ class RepoIssueTrackerCreateTests(TestCase):
         RepoIssueTracker.create(self.config, sentinel.remote)
         self.mock_parse_remote.assert_called_once_with(sentinel.remote)
 
+
+
+class RepoIssueTrackerMatchesRemoteTests(TestCase):
+    class SubTracker(RepoIssueTracker):  # pylint: disable=abstract-method,too-few-public-methods
+        pass
+
+    def test_none_remote_does_not_match(self):
+        eq_(self.SubTracker.matches_remote(None), False)
+
+    def test_no_remote_matches(self):
+        eq_(self.SubTracker.matches_remote('http://domain/user/name'), False)
+        eq_(self.SubTracker.matches_remote('https://domain/user/name'), False)
+        eq_(self.SubTracker.matches_remote('git@domain:user/name'), False)
+
+    @patch.object(SubTracker, '_matches_domain')
+    @patch('issue2branch.trackers.base.parse_remote_url')
+    def test_matches_if_domain_matches(self, mock_parse_remote, mock_matches_domain):
+        mock_matches_domain.return_value = sentinel.matches_domain
+        mock_parse_remote.return_value = MockRemoteData(domain=sentinel.domain)
+        eq_(self.SubTracker.matches_remote(sentinel.remote), sentinel.matches_domain)
+        mock_matches_domain.assert_called_once_with(sentinel.domain)
