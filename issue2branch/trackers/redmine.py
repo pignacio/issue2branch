@@ -3,11 +3,12 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import json
 import requests
-import urllib
+
+from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 from .base import IssueTracker
 from ..issue import Issue
@@ -38,11 +39,10 @@ class Redmine(IssueTracker):
         if options.all:
             params['status_id'] = "*"
         project = self.get_project(config, options)
-        print self._base_url
+        print(self._base_url)
         base_url = (self._base_url if project is None
                     else "{}/projects/{}".format(self._base_url, project))
-        return "{}/issues.json?{}".format(base_url,
-                                          urllib.urlencode(params))
+        return "{}/issues.json?{}".format(base_url, urlencode(params))
 
     def parse_issue_list(self, content, config, options):
         return [self.extract_issue(issue) for issue in content['issues']]
@@ -76,7 +76,7 @@ class Redmine(IssueTracker):
         }}
 
         headers = {'content-type': 'application/json'}
-        print "Updating issue #{}: {}".format(issue, payload)
+        print("Updating issue #{}: {}".format(issue, payload))
         self._request(requests.put, self.get_issue_url(issue, config, options),
                       data=json.dumps(payload), headers=headers)
 

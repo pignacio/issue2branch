@@ -3,16 +3,18 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
+from __future__ import print_function
 import os
-from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError
+from six.moves.configparser import (  # pylint: disable=import-error
+    SafeConfigParser, NoSectionError, NoOptionError
+)
 
 from .repo import get_git_root
 
 
+
 CONF_FILE = '.issue2branch.config'
 CONF_ENV_VARIABLE = 'ISSUE2BRANCH_CONFIG'
-
-
 
 
 class Config(object):
@@ -21,7 +23,7 @@ class Config(object):
 
     @classmethod
     def from_filename(cls, fname):
-        print "Loading issue2branch config from: '{}'".format(fname)
+        print("Loading issue2branch config from: '{}'".format(fname))
         config = SafeConfigParser()
         config.read([fname])
         return cls(config)

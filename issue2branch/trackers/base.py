@@ -3,7 +3,7 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 from argparse import ArgumentParser
 from getpass import getpass
@@ -114,24 +114,24 @@ class IssueTracker(object):  # pylint: disable=abstract-class-little-used
 
         def _op(message, callback, *args, **kwargs):
             if options.noop:
-                print "(noop) {}".format(message)
+                print("(noop) {}".format(message))
             else:
-                print message
+                print(message)
                 callback(*args, **kwargs)
 
         if options.list:
             try:
                 issues = self.get_issue_list(config, options)
             except NotImplementedError:
-                print ("[ERROR] Issue list is not implemented for {}"
-                       .format(self.__class__))
+                print(("[ERROR] Issue list is not implemented for {}"
+                       .format(self.__class__)))
                 return
-            print "Got {} issues".format(len(issues))
+            print("Got {} issues".format(len(issues)))
 
             issues = {issue.issue_id: issue for issue in issues}
             childs = set()
 
-            for issue_id, issue in issues.items():
+            for issue_id, issue in list(issues.items()):
                 parent = issue.parent
                 if parent is not None and parent in issues:
                     issues[parent].childs[issue_id] = issue
@@ -142,21 +142,21 @@ class IssueTracker(object):  # pylint: disable=abstract-class-little-used
 
             self._list_issues(issues)
         elif options.show is not None:
-            print "Showing issue {}".format(options.show)
+            print("Showing issue {}".format(options.show))
             issue = self.get_issue(options.show, config, options)
-            print
-            print "{} #{}: {}".format(colorize(issue.tag), issue.issue_id,
-                                      issue.title)
-            print
+            print()
+            print("{} #{}: {}".format(colorize(issue.tag), issue.issue_id,
+                                      issue.title))
+            print()
             if issue.description is not None:
-                print issue.description
+                print(issue.description)
             else:
-                print "<No description>"
+                print("<No description>")
         else:
-            print ("Getting issue title for issue: "
-                   "'{}'".format(options.issue))
+            print(("Getting issue title for issue: "
+                   "'{}'".format(options.issue)))
             branch = self.get_issue(options.issue, config, options).branch()
-            print "Got branch: '{}'".format(branch)
+            print("Got branch: '{}'".format(branch))
             branch = get_branch_name(branch)
             _op("Branching '{}'".format(branch),
                 branch_and_move, branch)
@@ -166,13 +166,13 @@ class IssueTracker(object):  # pylint: disable=abstract-class-little-used
                     _op("Taking issue: {}".format(options.issue),
                         self.take_issue, options.issue, config, options)
                 except NotImplementedError:
-                    print ("[ERROR] Issue taking is not implemented for {}"
-                           .format(self.__class__))
+                    print(("[ERROR] Issue taking is not implemented for {}"
+                           .format(self.__class__)))
 
     @classmethod
     def _list_issues(cls, issues, indent=0):
         for dummy_issue_id, issue in sorted(issues.items()):
-            print "{} * {}".format("  " * indent, issue.text())
+            print("{} * {}".format("  " * indent, issue.text()))
             cls._list_issues(issue.childs, indent=indent + 1)
 
     @staticmethod

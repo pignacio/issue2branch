@@ -64,6 +64,7 @@ setup(
     install_requires=[
         'beautifulsoup4',
         'requests',
+        'six',
         'GitPython>=0.3.6',
     ],
 
