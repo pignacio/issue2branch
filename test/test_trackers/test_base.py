@@ -7,7 +7,6 @@ from __future__ import absolute_import, unicode_literals
 import argparse
 import logging
 
-from mock import patch, create_autospec, sentinel, Mock
 from nose.tools import eq_
 import requests
 
@@ -17,6 +16,7 @@ from ..mock_objects import MockRepoData, MockRemoteData
 from ..utils import (
     config_from_string, mock_properties, TestCase, namedtuple_with_defaults,
     parser_exit_replace)
+from ..utils.mock import patch, sentinel, Mock, create_autospec
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -115,56 +115,56 @@ class IssueTrackerParsing(TestCase):
     ''' Tests for issue / issue list fetching/parsing. '''
     def setUp(self):
         self.tracker = IssueTracker()
-        self.tracker.get_issue_list_url = create_autospec(self.tracker.get_issue_list_url)
-        self.tracker.parse_issue_list = create_autospec(self.tracker.parse_issue_list)
-        self.tracker._request = create_autospec(self.tracker._request)
-        self.tracker.get_issue_url = create_autospec(self.tracker.get_issue_url)
-        self.tracker.parse_issue = create_autospec(self.tracker.parse_issue)
+        self.mock_get_issue_list_url = self.patch_object(self.tracker, 'get_issue_list_url')
+        self.mock_parse_issue_list = self.patch_object(self.tracker, 'parse_issue_list')
+        self.mock_request = self.patch_object(self.tracker, '_request')
+        self.mock_get_issue_url = self.patch_object(self.tracker, 'get_issue_url')
+        self.mock_parse_issue = self.patch_object(self.tracker, 'parse_issue')
 
         self.patcher_get_content = patch(
             'issue2branch.trackers.base.get_response_content', autospec=True)
         self.mock_get_content = self.patcher_get_content.start()
 
-        self.tracker._request.return_value = sentinel.response
+        self.mock_request.return_value = sentinel.response
         self.mock_get_content.return_value = sentinel.content
 
     def tearDown(self):
         self.patcher_get_content.stop()
 
     def test_get_issue_list(self):
-        self.tracker.get_issue_list_url.return_value = sentinel.list_url
-        self.tracker.parse_issue_list.return_value = sentinel.parsed_list
+        self.mock_get_issue_list_url.return_value = sentinel.list_url
+        self.mock_parse_issue_list.return_value = sentinel.parsed_list
 
         issue_list = self.tracker.get_issue_list(sentinel.config,
                                                  sentinel.options)
 
-        self.tracker.get_issue_list_url.assert_called_once_with(
+        self.mock_get_issue_list_url.assert_called_once_with(
             sentinel.config, sentinel.options)
-        self.tracker._request.assert_called_once_with(requests.get,
-                                                      sentinel.list_url)
+        self.mock_request.assert_called_once_with(requests.get,
+                                                  sentinel.list_url)
         self.mock_get_content.assert_called_once_with(sentinel.response)
-        self.tracker.parse_issue_list.assert_called_once_with(sentinel.content,
-                                                              sentinel.config,
-                                                              sentinel.options)
+        self.mock_parse_issue_list.assert_called_once_with(sentinel.content,
+                                                           sentinel.config,
+                                                           sentinel.options)
         eq_(issue_list, sentinel.parsed_list)
 
 
     def test_get_issue(self):
-        self.tracker.get_issue_url.return_value = sentinel.issue_url
-        self.tracker.parse_issue.return_value = sentinel.parsed_issue
+        self.mock_get_issue_url.return_value = sentinel.issue_url
+        self.mock_parse_issue.return_value = sentinel.parsed_issue
 
         issue = self.tracker.get_issue(sentinel.issue_id,
                                        sentinel.config, sentinel.options)
 
-        self.tracker.get_issue_url.assert_called_once_with(sentinel.issue_id,
-                                                           sentinel.config,
-                                                           sentinel.options)
-        self.tracker._request.assert_called_once_with(requests.get,
-                                                      sentinel.issue_url)
+        self.mock_get_issue_url.assert_called_once_with(sentinel.issue_id,
+                                                        sentinel.config,
+                                                        sentinel.options)
+        self.mock_request.assert_called_once_with(requests.get,
+                                                  sentinel.issue_url)
         self.mock_get_content.assert_called_once_with(sentinel.response)
-        self.tracker.parse_issue.assert_called_once_with(sentinel.content,
-                                                         sentinel.config,
-                                                         sentinel.options)
+        self.mock_parse_issue.assert_called_once_with(sentinel.content,
+                                                      sentinel.config,
+                                                      sentinel.options)
         eq_(issue, sentinel.parsed_issue)
 
 
@@ -390,7 +390,7 @@ class RepoIssueTrackerCreateTests(TestCase):
             'issue2branch.trackers.base.parse_remote_url', autospec=True)
 
         self.mock_parse_remote.return_value = MockRemoteData(
-            repo=MockRepoData(user=sentinel.user, name=sentinel.name))
+            repo=MockRepoData(user=sentinel.remote_user, name=sentinel.remote_name))
 
     @patch.object(IssueTracker, 'create')
     def test_proxies_parent_create(self, mock_create):
@@ -413,31 +413,22 @@ class RepoIssueTrackerCreateTests(TestCase):
         eq_(tracker.repo_user, sentinel.repo_user)
         eq_(tracker.repo_name, sentinel.repo_name)
 
-    @patch('issue2branch.trackers.base.parse_remote_url', autospec=True)
-    def test_loads_remote_repo_data(self, mock_parse_remote):
-        mock_parse_remote.return_value = MockRemoteData(
-            repo=MockRepoData(user=sentinel.remote_user,
-                              name=sentinel.remote_name))
-
+    def test_loads_remote_repo_data(self):
         tracker = RepoIssueTracker.create(self.config, remote=sentinel.remote)
 
-        mock_parse_remote.assert_called_once_with(sentinel.remote)
+        self.mock_parse_remote.assert_called_once_with(sentinel.remote)
         eq_(tracker.repo_user, sentinel.remote_user)
         eq_(tracker.repo_name, sentinel.remote_name)
 
     @patch.object(RepoIssueTracker, 'get_repo_data_from_config')
-    @patch('issue2branch.trackers.base.parse_remote_url', autospec=True)
-    def test_config_repo_data_overrides_remote(self, mock_parse_remote, mock_get_data):
+    def test_config_repo_data_overrides_remote(self, mock_get_data):
         mock_get_data.return_value = MockRepoData(user=sentinel.config_user,
                                                   name=sentinel.config_name)
-        mock_parse_remote.return_value = MockRemoteData(
-            repo=MockRepoData(user=sentinel.remote_user,
-                              name=sentinel.remote_name))
 
         tracker = RepoIssueTracker.create(self.config, remote=sentinel.remote)
 
         mock_get_data.assert_called_once_with(self.config)
-        mock_parse_remote.assert_called_once_with(sentinel.remote)
+        self.mock_parse_remote.assert_called_once_with(sentinel.remote)
         eq_(tracker.repo_user, sentinel.config_user)
         eq_(tracker.repo_name, sentinel.config_name)
 

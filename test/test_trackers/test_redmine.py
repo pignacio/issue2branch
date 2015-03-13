@@ -7,10 +7,10 @@ from __future__ import absolute_import, unicode_literals
 import argparse
 import json
 import logging
-import urlparse
 
 from mock import patch, sentinel
 from nose.tools import eq_
+from six.moves.urllib.parse import parse_qs, urlparse  # pylint: disable=import-error
 import requests
 
 from issue2branch.trackers.base import IssueTracker
@@ -74,7 +74,7 @@ class GetIssueListUrlTests(TestCase):
     def test_querystring_defaults(self):
         url = self.tracker.get_issue_list_url(sentinel.config, self.no_options)
 
-        parsed_qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+        parsed_qs = parse_qs(urlparse(url).query)
         self.assertNotIn('assigned_to_id', parsed_qs)
         self.assertNotIn('fixed_version_id', parsed_qs)
         self.assertNotIn('status_id', parsed_qs)
@@ -84,28 +84,28 @@ class GetIssueListUrlTests(TestCase):
 
         self.mock_get_limit.assert_called_once_with(sentinel.config,
                                                     self.no_options)
-        parsed_qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+        parsed_qs = parse_qs(urlparse(url).query)
         eq_(parsed_qs['limit'], ['12345'])
 
     def test_mine(self):
         options = MockRedmineOptions(mine=True)
         url = self.tracker.get_issue_list_url(sentinel.config, options)
 
-        parsed_qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+        parsed_qs = parse_qs(urlparse(url).query)
         eq_(parsed_qs['assigned_to_id'], ['me'])
 
     def test_version(self):
         options = MockRedmineOptions(version='v30')
         url = self.tracker.get_issue_list_url(sentinel.config, options)
 
-        parsed_qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+        parsed_qs = parse_qs(urlparse(url).query)
         eq_(parsed_qs['fixed_version_id'], ['v30'])
 
     def test_all(self):
         options = MockRedmineOptions(all=True)
         url = self.tracker.get_issue_list_url(sentinel.config, options)
 
-        parsed_qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+        parsed_qs = parse_qs(urlparse(url).query)
         eq_(parsed_qs['status_id'], ['*'])
 
     def test_no_project_url(self):
