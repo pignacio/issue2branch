@@ -34,7 +34,7 @@ class Config(object):
         if coerce:
             try:
                 value = coerce(value)
-            except Exception:  #pylint: broad-except
+            except Exception:
                 raise ValueError("Config @ {}:{} is not an {}".format(
                     section, option, coerce))
         return value
