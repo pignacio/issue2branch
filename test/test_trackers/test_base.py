@@ -22,6 +22,18 @@ from ..utils import (
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
+TRACKER_OPTIONS_DEFAULTS = {
+    'issue': None,
+    'list': False,
+    'limit': None,
+    'noop': False,
+    'take': None,
+    'show': None
+}
+MockTrackerOptions = namedtuple_with_defaults('MockTrackerOptions',
+                                              list(TRACKER_OPTIONS_DEFAULTS),
+                                              defaults=TRACKER_OPTIONS_DEFAULTS)
+
 class IssueTrackerRequest(TestCase):
     ''' Tests for `IssueTracker._request`. '''
     def setUp(self):
