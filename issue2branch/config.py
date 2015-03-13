@@ -13,22 +13,36 @@ CONF_FILE = '.issue2branch.config'
 CONF_ENV_VARIABLE = 'ISSUE2BRANCH_CONFIG'
 
 
-class Config(object):
-    def __init__(self, fname):
-        print "Loading issue2branch config from: '{}'".format(fname)
-        self._config = SafeConfigParser()
-        self._config.read([fname])
 
-    def get(self, section, option, default):
+
+class Config(object):
+    def __init__(self, config):
+        self._config = config
+
+    @classmethod
+    def from_filename(cls, fname):
+        print "Loading issue2branch config from: '{}'".format(fname)
+        config = SafeConfigParser()
+        config.read([fname])
+        return cls(config)
+
+    def get(self, section, option, default, coerce=None):  # pylint: disable=redefined-builtin
         try:
-            return self._config.get(section, option)
+            value = self._config.get(section, option)
         except (NoSectionError, NoOptionError):
             return default
+        if coerce:
+            try:
+                value = coerce(value)
+            except Exception:
+                raise ValueError("Config @ {}:{} is not an {}".format(
+                    section, option, coerce))
+        return value
 
-    def get_or_die(self, section, option, default=None):
+    def get_or_die(self, section, option, default=None, **kwargs):
 
         try:
-            return self._config.get(section, option)
+            return self._config.get(section, option, **kwargs)
         except (NoSectionError, NoOptionError):
             if default is not None:
                 return default
@@ -45,4 +59,4 @@ def get_config_file():
 
 
 def get_config():
-    return Config(get_config_file())
+    return Config.from_filename(get_config_file())

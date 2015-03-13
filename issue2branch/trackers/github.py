@@ -14,59 +14,39 @@ _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
                    'new feature'))
 
 class Github(RepoIssueTracker):
-    def _get_single_issue(self, contents):
-        issue = Issue(contents['number'], contents['title'],
-                      description=contents['body'])
-        issue.assignee = self._extract_or_none(contents, "assignee", "login")
-        issue.tag = self._first_label(self._extract_or_none(contents, 'labels'),
+    def get_issue_list_url(self, config, options):
+        params = {
+            'per_page': self.get_list_limit(config, options),
+        }
+        return self._api_url("repos/{}/{}/issues?{}".format(
+            self.repo_user, self.repo_name, urllib.urlencode(params),
+        ))
+
+    def parse_issue_list(self, content, config, options):
+        return [self.parse_issue(issue, config, options) for issue in content]
+
+
+    def get_issue_url(self, issue, config, options):
+        return self._api_url("repos/{}/{}/issues/{}".format(
+            self.repo_user, self.repo_name, issue,
+        ))
+
+    def parse_issue(self, content, config, options):
+        issue = Issue(content['number'], content['title'],
+                      description=content['body'])
+        issue.assignee = self.extract_or_none(content, "assignee", "login")
+        issue.tag = self._first_label(self.extract_or_none(content, 'labels'),
                                       _VALID_TAGS)
         return issue
 
-    def get_issues(self, limit):
-        params = {
-            'per_page': limit,
-        }
-        issues = self._api_get("repos/{}/{}/issues?{}".format(
-            self._repo_user,
-            self._repo_name,
-            urllib.urlencode(params)
-        ))
-        return [self._get_single_issue(issue) for issue in issues]
-
-    def take_issue(self, issue):
-        url = self._get_issue_url(issue)
+    def take_issue(self, issue, config, options):
+        url = self.get_issue_url(issue, config, options)
         data = json.dumps({'assignee': self._user})
-        response = self._request(requests.patch, url, data=data)
-        if not response.status_code == 200:
-            raise ValueError("Github api returned code {} != 200 for '{}'"
-                             .format(response.status_code, url))
-
-    @classmethod
-    def _get_default_url(cls, domain, user, repo):
-        return cls._api_url("repos/{user}/{repo}".format(**locals()))
-
-    @classmethod
-    def from_remotes(cls, config, remotes):
-        return cls._from_remotes(config, remotes, domain_has='github.com')
+        self._request(requests.patch, url, data=data)
 
     @staticmethod
     def _api_url(path):
         return "https://api.github.com/{}".format(path)
-
-    def _api_get(self, path):
-        url = self._api_url(path)
-        response = self._request(requests.get, url)
-        if not response.status_code == 200:
-            raise ValueError("Github api returned code {} != 200 for '{}'"
-                             .format(response.status_code, url))
-        return response.json()
-
-    @classmethod
-    def from_config(cls, config, repo_user=None, repo_name=None):
-        repo_user = config.get_or_die('github', 'repo_user', default=repo_user)
-        repo_name = config.get_or_die('github', 'repo_name', default=repo_name)
-        base_url = cls._get_default_url("github.com", repo_user, repo_name)
-        return cls(config, base_url, repo_user, repo_name)
 
     @staticmethod
     def _first_label(labels, valid_labels):
@@ -77,3 +57,7 @@ class Github(RepoIssueTracker):
             if name.lower() in valid_labels:
                 return name
         return None
+
+    @classmethod
+    def _matches_domain(cls, domain):
+        return 'github.com' in domain

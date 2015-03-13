@@ -13,79 +13,63 @@ from .base import IssueTracker
 from ..issue import Issue
 
 
-
-def _format(value, format_dict):
-    try:
-        func = format_dict[value]
-        return func(value)
-    except KeyError:
-        return value
-
-
 class Redmine(IssueTracker):
-    def _get_issue_url(self, issue):
-        return IssueTracker._get_issue_url(self, issue) + ".json"
+    def __init__(self, base_url, **kwargs):
+        super(Redmine, self).__init__(**kwargs)
+        self._base_url = base_url
 
-    def _get_single_issue(self, contents):
-        return self._get_issue(contents['issue'])
-
-    def _get_issue(self, issue_data):
-        issue = Issue(issue_data['id'], issue_data['subject'])
-        issue.tag = self._extract_or_none(issue_data, 'tracker', 'name')
-        issue.parent = self._extract_or_none(issue_data, 'parent', 'id')
-        issue.status = self._get_field_name(issue_data, "status")
-        issue.priority = self._get_field_name(issue_data, "priority")
-        issue.assignee = self._get_field_name(issue_data, "assigned_to",
-                                              None)
-        issue.project = self._extract_or_none(issue_data, 'project', 'name')
-        issue.description = issue_data['description']
-        return  issue
-
-    def _get_project(self):
-        project = self._config.get('redmine', 'project', None)
-        if self._options.project:
-            project = self._options.project
-        if self._options.all_projects:
+    @staticmethod
+    def get_project(config, options):
+        project = config.get('redmine', 'project', None)
+        if options.project:
+            project = options.project
+        if options.all_projects:
             project = None
         return project
 
-    def get_issues(self, limit):
+    def get_issue_list_url(self, config, options):
         params = {
-            'limit': limit,
+            'limit': self.get_list_limit(config, options),
         }
-        if self._options.mine:
+        if options.mine:
             params['assigned_to_id'] = 'me'
-        if self._options.version:
-            params['fixed_version_id'] = self._options.version
-        if self._options.all:
+        if options.version:
+            params['fixed_version_id'] = options.version
+        if options.all:
             params['status_id'] = "*"
-        project = self._get_project()
+        project = self.get_project(config, options)
+        print self._base_url
         base_url = (self._base_url if project is None
                     else "{}/projects/{}".format(self._base_url, project))
-        url = "{}/issues.json?{}".format(base_url,
-                                         urllib.urlencode(params))
-        response = self._request(requests.get, url)
-        if response.status_code != 200:
-            raise ValueError("Redmine API responded {} != 200 for '{}'"
-                             .format(response.status_code, url))
-        issues_json = response.json()['issues']
-        issues = []
-        for json_data in issues_json:
-            issue = self._get_issue(json_data)
-            issues.append(issue)
+        return "{}/issues.json?{}".format(base_url,
+                                          urllib.urlencode(params))
 
-        return issues
+    def parse_issue_list(self, content, config, options):
+        return [self.extract_issue(issue) for issue in content['issues']]
 
-    @staticmethod
-    def _get_field_name(issue, field, default=None):
-        try:
-            return issue[field]['name']
-        except KeyError:
-            return default
+    def get_issue_url(self, issue, config, options):
+        return "{}/issues/{}.json".format(self._base_url, issue)
 
-    def take_issue(self, issue):
-        inprogress_id = self._config.get_or_die("redmine", "inprogress_id")
-        assignee_id = self._config.get_or_die("redmine", "assignee_id")
+    def parse_issue(self, contents, config, options):
+        return self.extract_issue(contents['issue'])
+
+    def extract_issue(self, issue_data):
+        issue = Issue(issue_data['id'], issue_data['subject'])
+        issue.tag = self.extract_or_none(issue_data, 'tracker', 'name')
+        issue.parent = self.extract_or_none(issue_data, 'parent', 'id')
+        issue.status = self._get_field_name(issue_data, "status")
+        issue.priority = self._get_field_name(issue_data, "priority")
+        issue.assignee = self._get_field_name(issue_data, "assigned_to")
+        issue.project = self.extract_or_none(issue_data, 'project', 'name')
+        issue.description = self.extract_or_none(issue_data, 'description')
+        return issue
+
+    def _get_field_name(self, issue, field):
+        return self.extract_or_none(issue, field, 'name')
+
+    def take_issue(self, issue, config, options):
+        inprogress_id = config.get_or_die("redmine", "inprogress_id")
+        assignee_id = config.get_or_die("redmine", "assignee_id")
         payload = {'issue': {
             'status_id': inprogress_id,
             'assigned_to_id': assignee_id
@@ -93,11 +77,12 @@ class Redmine(IssueTracker):
 
         headers = {'content-type': 'application/json'}
         print "Updating issue #{}: {}".format(issue, payload)
-        self._request(requests.put, self._get_issue_url(issue),
-                      json.dumps(payload), headers=headers)
+        self._request(requests.put, self.get_issue_url(issue, config, options),
+                      data=json.dumps(payload), headers=headers)
 
-    def _get_arg_parser(self):
-        parser = IssueTracker._get_arg_parser(self)
+    @classmethod
+    def get_arg_parser(cls):
+        parser = super(Redmine, cls).get_arg_parser()
         parser.add_argument("-m", "--mine",
                             action='store_true', default=False,
                             help='Only show issues assigned to me')
@@ -118,6 +103,6 @@ class Redmine(IssueTracker):
         return parser
 
     @classmethod
-    def from_config(cls, config):
+    def create(cls, config, remote=None, **kwargs):
         url = config.get_or_die('redmine', 'url')
-        return cls(config, url)
+        return super(Redmine, cls).create(config, base_url=url, **kwargs)

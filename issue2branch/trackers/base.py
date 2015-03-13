@@ -5,74 +5,76 @@ Created on May 17, 2014
 '''
 from __future__ import unicode_literals
 
-
 from argparse import ArgumentParser
-from BeautifulSoup import BeautifulSoup
-import getpass
-import re
+from getpass import getpass
+import logging
 import requests
 
-from ..repo import branch_and_move, get_branch_name
+from ..repo import branch_and_move, get_branch_name, parse_remote_url
 from ..format import colorize
+from ..objects import RepoData
+from ..utils.requests import request, get_response_content
 
-class IssueTracker(object):
+
+__all__ = ['IssueTracker', 'RepoIssueTracker']
+
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
+
+class IssueTracker(object):  # pylint: disable=abstract-class-little-used
     _DEFAULT_LIST_LIMIT = 40
 
-    def __init__(self, config, base_url=None, user=None, password=None):
-        self._config = config
-        self._options = None
-        self._user = user or self._config.get('auth', 'user', None)
-        self._password = password or self._config.get('auth', 'password', None)
-        if self._user:
-            self._password = self._password or getpass.getpass()
-        self._base_url = base_url
+    def __init__(self, user=None, password=None):
+        self._user = user
+        self._password = password
 
-    def _request(self, method, url, *args, **kwargs):
-        auth = (self._user, self._password) if self._user else None
-        print "Requesting '{}'".format(url)
-        return method(url, auth=auth, *args, **kwargs)
+    def _ask_for_password(self):
+        if not self._user:
+            return
+        if self._password is None:
+            self._password = getpass()
 
-    def _get_issue_url(self, issue):
-        return "{}/issues/{}".format(self._base_url, issue)
 
-    def _get_issue_contents(self, issue):
-        ''' Fetch the issue contents. '''
-        url = self._get_issue_url(issue)
+    def _request(self, method, url, **kwargs):
+        ''' Wrap `utils.requests.request` adding user and password. '''
+        self._ask_for_password()
+        return request(method, url, user=self._user, password=self._password,
+                       **kwargs)
+
+    def get_issue_list_url(self, config, options):
+        raise NotImplementedError()
+
+    def parse_issue_list(self, content, config, options):
+        raise NotImplementedError()
+
+    def get_issue_list(self, config, options):
+        url = self.get_issue_list_url(config, options)
         response = self._request(requests.get, url)
-        if response.status_code != 200:
-            raise ValueError("HTTP GET for '{}' did not return 200 but {}"
-                             .format(url, response.status_code))
-        if 'application/json' in response.headers['content-type']:
-            return response.json()
-        else:
-            return BeautifulSoup(response.content)
+        content = get_response_content(response)
+        return self.parse_issue_list(content, config, options)
 
-    def _get_single_issue(self, contents):
-        ''' Build a `issue.Issue` from the issue contents. '''
+
+    def get_issue_url(self, issue, config, options):
         raise NotImplementedError()
 
-    def get_issue_branch(self, issue):
-        contents = self._get_issue_contents(issue)
-        return self._get_single_issue(contents).branch()
+    def parse_issue(self, content, config, options):
+        raise NotImplementedError()
 
-    def get_issues(self, limit):
+    def get_issue(self, issue, config, options):
+        url = self.get_issue_url(issue, config, options)
+        response = self._request(requests.get, url)
+        content = get_response_content(response)
+        return self.parse_issue(content, config, options)
+
+    def take_issue(self, issue, config, options):
         raise NotImplementedError()
 
     @classmethod
-    def from_remotes(cls, config, remotes):  # pylint: disable=unused-argument
-        return None
+    def parse_args(cls):
+        return cls.get_arg_parser().parse_args()
 
     @classmethod
-    def from_config(cls, config):
-        raise NotImplementedError()
-
-    def take_issue(self, issue):
-        raise NotImplementedError()
-
-    def parse_args(self):
-        return self._get_arg_parser().parse_args()
-
-    def _get_arg_parser(self):  # pylint: disable=no-self-use
+    def get_arg_parser(cls):
         parser = ArgumentParser()
         parser.add_argument("issue", nargs='?',
                             help="Issue to start working on")
@@ -93,32 +95,33 @@ class IssueTracker(object):
                             help="Show the issue on screen")
         return parser
 
-    def _get_list_limit(self):
-        if self._options.limit is None:
-            limit = self._config.get('list', 'limit', self._DEFAULT_LIST_LIMIT)
+    @classmethod
+    def get_list_limit(cls, config, options):
+        if options.limit is None:
+            limit = config.get('list', 'limit', cls._DEFAULT_LIST_LIMIT,
+                               coerce=int)
         else:
-            limit = self._options.limit
+            limit = options.limit
         if limit <= 0:
             raise ValueError("List limit must be positive: {}".format(limit))
         return limit
 
-    def run(self):
-        self._options = self.parse_args()
-
-        if not any([self._options.issue, self._options.list,
-                    self._options.show]):
+    def run(self, config):
+        options = self.parse_args()
+        if not any([options.issue, options.list,
+                    options.show]):
             raise ValueError("Must supply an issue, -s/--show or -l/--list")
 
         def _op(message, callback, *args, **kwargs):
-            if self._options.noop:
+            if options.noop:
                 print "(noop) {}".format(message)
             else:
                 print message
                 callback(*args, **kwargs)
 
-        if self._options.list:
+        if options.list:
             try:
-                issues = self.get_issues(self._get_list_limit())
+                issues = self.get_issue_list(config, options)
             except NotImplementedError:
                 print ("[ERROR] Issue list is not implemented for {}"
                        .format(self.__class__))
@@ -138,10 +141,9 @@ class IssueTracker(object):
                 del issues[child]
 
             self._list_issues(issues)
-        elif self._options.show is not None:
-            print "Showing issue {}".format(self._options.show)
-            contents = self._get_issue_contents(self._options.show)
-            issue = self._get_single_issue(contents)
+        elif options.show is not None:
+            print "Showing issue {}".format(options.show)
+            issue = self.get_issue(options.show, config, options)
             print
             print "{} #{}: {}".format(colorize(issue.tag), issue.issue_id,
                                       issue.title)
@@ -152,17 +154,17 @@ class IssueTracker(object):
                 print "<No description>"
         else:
             print ("Getting issue title for issue: "
-                   "'{}'".format(self._options.issue))
-            branch = self.get_issue_branch(self._options.issue)
+                   "'{}'".format(options.issue))
+            branch = self.get_issue(options.issue, config, options).branch()
             print "Got branch: '{}'".format(branch)
             branch = get_branch_name(branch)
             _op("Branching '{}'".format(branch),
                 branch_and_move, branch)
 
-            if self._options.take:
+            if options.take:
                 try:
-                    _op("Taking issue: {}".format(self._options.issue),
-                        self.take_issue, self._options.issue)
+                    _op("Taking issue: {}".format(options.issue),
+                        self.take_issue, options.issue, config, options)
                 except NotImplementedError:
                     print ("[ERROR] Issue taking is not implemented for {}"
                            .format(self.__class__))
@@ -174,7 +176,7 @@ class IssueTracker(object):
             cls._list_issues(issue.childs, indent=indent + 1)
 
     @staticmethod
-    def _extract_or_none(json_obj, *keys):
+    def extract_or_none(json_obj, *keys):
         for key in keys:
             try:
                 json_obj = json_obj[key]
@@ -182,50 +184,59 @@ class IssueTracker(object):
                 return None
         return json_obj
 
+    @classmethod
+    def matches_remote(cls, remote):  # pylint: disable=unused-argument
+        return False
 
-class RepoIssueTracker(IssueTracker):
+    @classmethod
+    def create(cls, config, remote=None, **kwargs):  # pylint: disable=unused-argument
+        user = kwargs.pop('user', None) or config.get('auth', 'user', None)
+        password = (kwargs.pop('password', None) or
+                    config.get('auth', 'password', None))
+        return cls(user=user, password=password, **kwargs)
 
-    _SSH_RE = r"[^@]+@([^:]+):([^/]+)/(.+)"
-    _HTTP_RE = r"https?://([^/]+)/([^/]+)/(.+)"
 
-    def __init__(self, config, base_url, repo_user, repo_name,
+class RepoIssueTracker(IssueTracker):  # pylint: disable=abstract-method
+    def __init__(self, repo_user, repo_name,
                  user=None, password=None):
-        IssueTracker.__init__(self, config, base_url, user, password)
-        self._repo_user = repo_user
-        self._repo_name = repo_name
+        IssueTracker.__init__(self, user=user, password=password)
+        self.__repo_user = repo_user
+        self.__repo_name = repo_name
+
+    @property
+    def repo_user(self):
+        return self.__repo_user
+
+    @property
+    def repo_name(self):
+        return self.__repo_name
 
     @classmethod
-    def _from_remotes(cls, config, remotes, domain_has):
-        if 'origin' in remotes:
-            try:
-                domain, user, repo = cls._parse(remotes['origin'])
-            except ValueError:
-                return None
-            if domain_has is not None and domain_has in domain:
-                return cls.from_config(config, repo_user=user, repo_name=repo)
+    def _matches_domain(cls, domain):  # pylint: disable=unused-argument
+        return False
 
     @classmethod
-    def _from_parsed_url(cls, domain,  # pylint: disable=unused-argument
-                         user, repo, config):
-        return cls.from_config(config, repo_user=user, repo_name=repo)
+    def matches_remote(cls, remote):
+        logger.debug("%s: matches remote: '%s'", cls, remote)
+        try:
+            data = parse_remote_url(remote)
+        except ValueError:
+            return False
+        return cls._matches_domain(data.domain)
 
     @classmethod
-    def _parse(cls, remote_url):
-        for regexp in [cls._SSH_RE, cls._HTTP_RE]:
-            mobj = re.search(regexp, remote_url)
-            if mobj:
-                return mobj.groups()
-        raise ValueError("Invalid url")
+    def create(cls, config, remote=None, **kwargs):
+        config_data = cls.get_repo_data_from_config(config)
+        try:
+            remote_data = parse_remote_url(remote).repo
+        except ValueError:
+            remote_data = RepoData.EMPTY
+        repo_user = config_data.user or remote_data.user
+        repo_name = config_data.name or remote_data.name
+        return super(RepoIssueTracker, cls).create(
+            config, remote=remote, repo_user=repo_user, repo_name=repo_name,
+            **kwargs)
 
     @classmethod
-    def _get_default_url(cls, domain, user, repo):
-        return 'http://{domain}/{user}/{repo}'.format(domain=domain, user=user,
-                                                      repo=repo)
-
-    @classmethod
-    def from_config(cls, config,  # pylint: disable=arguments-differ
-                    repo_user=None, repo_name=None):
-        raise NotImplementedError
-
-    def take_issue(self, issue):
-        IssueTracker.take_issue(self, issue)
+    def get_repo_data_from_config(cls, config):  # pylint: disable=unused-argument
+        return RepoData.EMPTY
