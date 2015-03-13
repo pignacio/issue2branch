@@ -19,7 +19,7 @@ class Redmine(IssueTracker):
         self._base_url = base_url
 
     @staticmethod
-    def _get_project(config, options):
+    def get_project(config, options):
         project = config.get('redmine', 'project', None)
         if options.project:
             project = options.project
@@ -37,39 +37,35 @@ class Redmine(IssueTracker):
             params['fixed_version_id'] = options.version
         if options.all:
             params['status_id'] = "*"
-        project = self._get_project(config, options)
+        project = self.get_project(config, options)
+        print self._base_url
         base_url = (self._base_url if project is None
                     else "{}/projects/{}".format(self._base_url, project))
         return "{}/issues.json?{}".format(base_url,
                                           urllib.urlencode(params))
 
     def parse_issue_list(self, content, config, options):
-        return [self._get_issue(issue) for issue in content['issues']]
+        return [self.extract_issue(issue) for issue in content['issues']]
 
     def get_issue_url(self, issue, config, options):
         return "{}/issues/{}.json".format(self._base_url, issue)
 
     def parse_issue(self, contents, config, options):
-        return self._get_issue(contents['issue'])
+        return self.extract_issue(contents['issue'])
 
-    def _get_issue(self, issue_data):
+    def extract_issue(self, issue_data):
         issue = Issue(issue_data['id'], issue_data['subject'])
         issue.tag = self.extract_or_none(issue_data, 'tracker', 'name')
         issue.parent = self.extract_or_none(issue_data, 'parent', 'id')
         issue.status = self._get_field_name(issue_data, "status")
         issue.priority = self._get_field_name(issue_data, "priority")
-        issue.assignee = self._get_field_name(issue_data, "assigned_to",
-                                              None)
+        issue.assignee = self._get_field_name(issue_data, "assigned_to")
         issue.project = self.extract_or_none(issue_data, 'project', 'name')
-        issue.description = issue_data['description']
-        return  issue
+        issue.description = self.extract_or_none(issue_data, 'description')
+        return issue
 
-    @staticmethod
-    def _get_field_name(issue, field, default=None):
-        try:
-            return issue[field]['name']
-        except KeyError:
-            return default
+    def _get_field_name(self, issue, field):
+        return self.extract_or_none(issue, field, 'name')
 
     def take_issue(self, issue, config, options):
         inprogress_id = config.get_or_die("redmine", "inprogress_id")
@@ -81,7 +77,7 @@ class Redmine(IssueTracker):
 
         headers = {'content-type': 'application/json'}
         print "Updating issue #{}: {}".format(issue, payload)
-        self._request(requests.put, self.get_issue_url(issue),
+        self._request(requests.put, self.get_issue_url(issue, config, options),
                       data=json.dumps(payload), headers=headers)
 
     @classmethod
