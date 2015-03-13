@@ -19,7 +19,8 @@ class Bitbucket(RepoIssueTracker):  # pylint: disable=abstract-method
         ))
 
     def parse_issue_list(self, content, config, options):
-        return [self.parse_issue(issue) for issue in content['issues']]
+        return [self.parse_issue(issue, config, options)
+                for issue in content['issues']]
 
     def parse_issue(self, content, config, options):
         issue = Issue(content['local_id'], content['title'])
