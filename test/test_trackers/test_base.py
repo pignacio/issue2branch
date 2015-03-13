@@ -14,7 +14,9 @@ import requests
 from issue2branch.trackers.base import IssueTracker, RepoIssueTracker
 
 from ..mock_objects import MockRepoData, MockRemoteData
-from ..utils import config_from_string, mock_properties, TestCase
+from ..utils import (
+    config_from_string, mock_properties, TestCase, namedtuple_with_defaults,
+    parser_exit_replace)
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -194,18 +196,10 @@ password = the_password
         eq_(self.init_mock.call_args[1]['password'], sentinel.other_password)
 
 
-class ExitCalled(Exception):
-    pass
-
-
-def _exit_replace(_status, msg):
-    raise ExitCalled(msg)
-
-
 class IssueTrackerParseArgs(TestCase):
     def setUp(self):
         self.parser = IssueTracker.get_arg_parser()
-        self.parser.exit = _exit_replace
+        self.parser.exit = parser_exit_replace
 
     def test_issue_default(self):
         options = self.parser.parse_args([''])

@@ -69,3 +69,11 @@ def mock_namedtuple_class(tuple_class):
 
 def mock_namedtuple(tuple_class, **kwargs):
     return mock_namedtuple_class(tuple_class)(**kwargs)
+
+
+class ExitCalled(Exception):
+    pass
+
+
+def parser_exit_replace(_status, msg):
+    raise ExitCalled(msg)
