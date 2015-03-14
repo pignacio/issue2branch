@@ -3,7 +3,7 @@ from .color import green, magenta
 
 class Issue(object):
     def __init__(self, issue_id, title, tag=None, parent=None, priority=None,
-                 status=None, assignee=None, project=None):
+                 status=None, assignee=None, project=None, description=None):
         self.issue_id = issue_id
         self.title = title
         self._tag = None
@@ -14,6 +14,7 @@ class Issue(object):
         self.status = status
         self.assignee = assignee
         self.project = project
+        self.description = description
 
     def text(self):
         if self.priority or self.status:

@@ -1,0 +1,7 @@
+[report]
+exclude_lines =
+    raise NotImplementedError()
+
+include = issue2branch/*
+show_missing = True
+precision = 2
