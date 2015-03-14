@@ -1,6 +1,26 @@
 issue2branch
 ============
 
+.. image:: https://pypip.in/version/issue2branch/badge.svg
+    :target: https://pypi.python.org/pypi/issue2branch/
+    :alt: Latest version
+
+.. image:: https://pypip.in/py_versions/issue2branch/badge.svg
+    :target: https://pypi.python.org/pypi/issue2branch/
+    :alt: Supported Python versions
+
+.. image:: https://travis-ci.org/pignacio/issue2branch.svg?branch=master
+    :target: https://travis-ci.org/pignacio/issue2branch
+
+.. image:: https://coveralls.io/repos/pignacio/issue2branch/badge.svg?branch=master
+    :target: https://coveralls.io/r/pignacio/issue2branch?branch=master
+
+
+.. image:: https://pypip.in/license/issue2branch/badge.svg
+    :target: https://pypi.python.org/pypi/issue2branch/
+    :alt: License
+
+
 A helper for naming feature branches with git
 
 This app fetches issue titles from different issue trackers, and checkouts
