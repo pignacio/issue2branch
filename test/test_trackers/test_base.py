@@ -433,7 +433,7 @@ class RepoIssueTrackerCreateTests(TestCase):
         eq_(tracker.repo_name, sentinel.config_name)
 
     def test_works_when_parse_remote_url_fails(self):
-        self.mock_parse_remote.side_effect = ValueError()
+        self.mock_parse_remote.side_effect = iter([ValueError()])
         RepoIssueTracker.create(self.config, sentinel.remote)
         self.mock_parse_remote.assert_called_once_with(sentinel.remote)
 
