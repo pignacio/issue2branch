@@ -65,7 +65,7 @@ setup(
     # https://packaging.python.org/en/latest/technical.html#install-requires-vs-requirements-files
     install_requires=[
         'beautifulsoup4',
-        'requests',
+        'requests>=2.6.0',
         'six',
         'GitPython>=0.3.6',
     ],
