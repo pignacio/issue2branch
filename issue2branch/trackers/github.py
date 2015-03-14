@@ -5,7 +5,8 @@ Created on May 17, 2014
 '''
 import json
 import requests
-import urllib
+
+from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 from .base import RepoIssueTracker
 from ..issue import Issue
@@ -19,7 +20,7 @@ class Github(RepoIssueTracker):
             'per_page': self.get_list_limit(config, options),
         }
         return self._api_url("repos/{}/{}/issues?{}".format(
-            self.repo_user, self.repo_name, urllib.urlencode(params),
+            self.repo_user, self.repo_name, urlencode(params),
         ))
 
     def parse_issue_list(self, content, config, options):

@@ -7,7 +7,7 @@ from __future__ import absolute_import, unicode_literals
 
 import logging
 
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name

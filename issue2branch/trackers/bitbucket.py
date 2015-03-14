@@ -3,7 +3,7 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
-import urllib
+from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 from .base import RepoIssueTracker, RepoData
 from ..issue import Issue
@@ -15,7 +15,7 @@ class Bitbucket(RepoIssueTracker):  # pylint: disable=abstract-method
             'limit': self.get_list_limit(config, options)
         }
         return self._api_url("repositories/{}/{}/issues?{}".format(
-            self.repo_user, self.repo_name, urllib.urlencode(params)
+            self.repo_user, self.repo_name, urlencode(params)
         ))
 
     def parse_issue_list(self, content, config, options):

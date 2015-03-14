@@ -5,9 +5,10 @@ from __future__ import absolute_import, unicode_literals
 from unittest import TestCase
 import logging
 
-from mock import create_autospec, patch, sentinel
 from nose.tools import eq_, raises
 import requests
+
+from ..utils.mock import create_autospec, patch, sentinel
 
 from issue2branch.utils.requests import (
     request, get_response_content, NotOkResponse)
