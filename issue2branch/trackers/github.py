@@ -10,6 +10,7 @@ from six.moves.urllib.parse import urlencode  # pylint: disable=import-error
 
 from .base import RepoIssueTracker
 from ..issue import Issue
+from ..objects import RepoData
 
 _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
                    'new feature'))
@@ -62,3 +63,10 @@ class Github(RepoIssueTracker):
     @classmethod
     def _matches_domain(cls, domain):
         return 'github.com' in domain
+
+    @classmethod
+    def get_repo_data_from_config(cls, config):
+        return RepoData(
+            user=config.get('github', 'repo_user', None),
+            name=config.get('github', 'repo_name', None),
+        )

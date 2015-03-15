@@ -13,6 +13,7 @@ import requests
 from ..utils import TestCase
 
 from issue2branch.trackers.github import Github
+from issue2branch.config import Config
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -148,3 +149,31 @@ class TakeIssue(TestCase):
         payload = json.loads(self.mock_request.call_args[1]['data'])
         eq_(payload['assignee'], 'the_user')
 
+
+class GetRepoFromConfigTests(TestCase):
+    @staticmethod
+    def _test_sections(sections, expected_user, expected_name):
+        config = Config.from_sections(sections)
+        data = Github.get_repo_data_from_config(config)
+        eq_(data.user, expected_user)
+        eq_(data.name, expected_name)
+
+
+    def test_no_config(self):
+        self._test_sections({}, None, None)
+
+    def test_only_user(self):
+        self._test_sections({'github': {'repo_user': 'the_repo_user'}},
+                            'the_repo_user', None)
+
+    def test_only_name(self):
+        self._test_sections({'github': {'repo_name': 'the_repo_name'}},
+                            None, 'the_repo_name')
+
+    def test_both(self):
+        self._test_sections({
+            'github': {
+                'repo_user': 'the_repo_user',
+                'repo_name': 'the_repo_name',
+            }
+        }, 'the_repo_user', 'the_repo_name')
