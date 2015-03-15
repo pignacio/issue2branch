@@ -17,6 +17,13 @@ CONF_FILE = '.issue2branch.config'
 CONF_ENV_VARIABLE = 'ISSUE2BRANCH_CONFIG'
 
 
+class ConfigMissing(Exception):
+    def __init__(self, section, option):
+        message = ("Config missing: Section:'{}', "
+                   "Option:'{}'".format(section, option))
+        super(ConfigMissing, self).__init__(message)
+
+
 class Config(object):
     def __init__(self, config):
         self._config = config
@@ -28,6 +35,16 @@ class Config(object):
         config.read([fname])
         return cls(config)
 
+    @classmethod
+    def from_sections(cls, sections):
+        config = SafeConfigParser()
+        for section, keyvalues in sections.items():
+            config.add_section(section)
+            for key, value in keyvalues.items():
+                config.set(section, key, value)
+        return cls(config)
+
+
     def get(self, section, option, default, coerce=None):  # pylint: disable=redefined-builtin
         try:
             value = self._config.get(section, option)
@@ -37,19 +54,15 @@ class Config(object):
             try:
                 value = coerce(value)
             except Exception:
-                raise ValueError("Config @ {}:{} is not an {}".format(
+                raise ValueError("Config @ {}:{} is not a {}".format(
                     section, option, coerce))
         return value
 
     def get_or_die(self, section, option, default=None, **kwargs):
-
-        try:
-            return self._config.get(section, option, **kwargs)
-        except (NoSectionError, NoOptionError):
-            if default is not None:
-                return default
-            raise ValueError("Config missing: Section:'{}', Option:'{}'"
-                             .format(section, option))
+        value = self.get(section, option, default, **kwargs)
+        if value is not None:
+            return value
+        raise ConfigMissing(section, option)
 
 
 def get_config_file():

@@ -15,6 +15,7 @@ import requests
 
 from issue2branch.trackers.base import IssueTracker
 from issue2branch.trackers.redmine import Redmine
+from issue2branch.config import ConfigMissing
 
 from ..utils import (
     config_from_string, TestCase, namedtuple_with_defaults, parser_exit_replace)
@@ -59,7 +60,7 @@ url = http://base_url
         eq_(tracker._base_url, "http://base_url")
 
     def test_create_fails_if_config_missing(self):
-        self.assertRaises(ValueError, Redmine.create, self.empty_config)
+        self.assertRaises(ConfigMissing, Redmine.create, self.empty_config)
 
 
 class GetIssueListUrlTests(TestCase):
@@ -241,8 +242,8 @@ inprogress_id = the_inprogress_id
 [redmine]
 assignee_id = 2
                                     ''')
-        self.assertRaisesRegexp(ValueError,
-                                'Config missing.*Option:[\'"]inprogress_id[\'"]',
+        self.assertRaisesRegexp(ConfigMissing,
+                                'Option:[\'"]inprogress_id[\'"]',
                                 self.tracker.take_issue,
                                 sentinel.issue, config, sentinel.options)
 
@@ -251,8 +252,8 @@ assignee_id = 2
 [redmine]
 inprogress_id = 2
                                     ''')
-        self.assertRaisesRegexp(ValueError,
-                                'Config missing.*Option:[\'"]assignee_id[\'"]',
+        self.assertRaisesRegexp(ConfigMissing,
+                                'Option:[\'"]assignee_id[\'"]',
                                 self.tracker.take_issue,
                                 sentinel.issue, config, sentinel.options)
 
