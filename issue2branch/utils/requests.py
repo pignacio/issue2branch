@@ -3,14 +3,25 @@ helpers for the requests library
 '''
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
+from __future__ import absolute_import, unicode_literals, print_function
 
 import logging
+import warnings
 
 from bs4 import BeautifulSoup
+from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
+
+__WARNED_ABOUT_PLATFORM = False
+
+
+# for testing purpouses
+def _reset_platform_warning():
+    global __WARNED_ABOUT_PLATFORM  # pylint: disable=global-statement
+    __WARNED_ABOUT_PLATFORM = False
 
 
 class NotOkResponse(Exception):
@@ -23,11 +34,33 @@ class NotOkResponse(Exception):
         return self._response
 
 
+def _request(method, url, **kwargs):
+    global __WARNED_ABOUT_PLATFORM  # pylint: disable=global-statement
+    logger.debug("method: %s, url: %s", method, url)
+    with warnings.catch_warnings(record=True) as warning_jar:
+        response = method(url, **kwargs)
+        logger.debug("warning_jar: %s", warning_jar)
+    for warning in warning_jar:
+        logger.debug('Got warning: %s', warning)
+        if warning.category is InsecurePlatformWarning:
+            logger.debug("Has already warned: %s", __WARNED_ABOUT_PLATFORM)
+            if __WARNED_ABOUT_PLATFORM:
+                continue
+            print("Got an InsecurePlatformWarning. "
+                  "Upgrade python to 2.7.9 or better to remove.")
+            __WARNED_ABOUT_PLATFORM = True
+        else:
+            warnings.warn(warning.message, warning.category)
+    return response
+
+
 def request(method, url, user=None, password=None, **kwargs):
+    global __WARNED_ABOUT_PLATFORM  # pylint: disable=global-statement
+    logger.debug("test")
     logger.info("Requesting: %s:%s", method.__name__, url)
     if user:
         kwargs['auth'] = (user, password)
-    response = method(url, **kwargs)
+    response = _request(method, url, **kwargs)
     logger.debug("Response status code: %s", response.status_code)
     if not 200 <= response.status_code < 300:
         used_auth = bool(kwargs.get('auth', None))

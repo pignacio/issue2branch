@@ -4,15 +4,20 @@ from __future__ import absolute_import, unicode_literals
 
 from unittest import TestCase
 import logging
+import uuid
+import warnings
+import sys
 
 from nose.tools import eq_, raises
+from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 import requests
+import six
+
 
 from ..utils.mock import create_autospec, patch, sentinel
 
 from issue2branch.utils.requests import (
-    request, get_response_content, NotOkResponse)
-
+    request, get_response_content, NotOkResponse, _reset_platform_warning)
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -58,6 +63,42 @@ class TestRequest(TestCase):
             request(self.method, sentinel.url)
         except NotOkResponse as err:
             eq_(err.response, self.response)
+
+    def _warn_and_respond(self, category, message=None):
+        message = message or str(uuid.uuid4())
+        def func(*a, **kw):  # pylint: disable=unused-argument
+            warnings.warn(message, category)
+            return self.response
+        return func
+
+    def test_insecure_platform_is_supresed(self):
+        _reset_platform_warning()
+        self.method.side_effect = self._warn_and_respond(InsecurePlatformWarning)
+        with warnings.catch_warnings(record=True) as warns:
+            response = request(self.method, sentinel.url)
+            eq_(warns, [])
+            eq_(response, self.response)
+
+    def test_not_all_warnings_are__supresed(self):
+        _reset_platform_warning()
+        self.method.side_effect = self._warn_and_respond(Warning, 'warning_message')
+        with warnings.catch_warnings(record=True) as warns:
+            response = request(self.method, sentinel.url)
+            eq_(len(warns), 1)
+            self.assertIn('warning_message', str(warns[0]))
+            eq_(response, self.response)
+
+    def test_insecure_platform_message_is_printed(self):
+        _reset_platform_warning()
+        self.method.side_effect = self._warn_and_respond(InsecurePlatformWarning)
+        buff = six.StringIO()
+        sys.stdout = buff
+        try:
+            request(self.method, sentinel.url)
+        finally:
+            sys.stdout = sys.__stdout__
+        self.assertIn('Got an InsecurePlatformWarning. Upgrade python to 2.7.9 or better to remove.',
+                      buff.getvalue())
 
 
 class TestGetResponseContent(TestCase):
