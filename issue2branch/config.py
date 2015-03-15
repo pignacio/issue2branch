@@ -35,6 +35,16 @@ class Config(object):
         config.read([fname])
         return cls(config)
 
+    @classmethod
+    def from_sections(cls, sections):
+        config = SafeConfigParser()
+        for section, keyvalues in sections.items():
+            config.add_section(section)
+            for key, value in keyvalues.items():
+                config.set(section, key, value)
+        return cls(config)
+
+
     def get(self, section, option, default, coerce=None):  # pylint: disable=redefined-builtin
         try:
             value = self._config.get(section, option)
