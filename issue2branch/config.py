@@ -44,7 +44,7 @@ class Config(object):
             try:
                 value = coerce(value)
             except Exception:
-                raise ValueError("Config @ {}:{} is not an {}".format(
+                raise ValueError("Config @ {}:{} is not a {}".format(
                     section, option, coerce))
         return value
 
