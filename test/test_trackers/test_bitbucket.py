@@ -11,6 +11,7 @@ from nose.tools import eq_
 from ..utils import TestCase
 
 from issue2branch.trackers.bitbucket import Bitbucket
+from issue2branch.config import Config
 
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
@@ -82,3 +83,32 @@ def test_matches_domain():
     eq_(Bitbucket._matches_domain('www.github.com'), False)
     eq_(Bitbucket._matches_domain('api.github.com'), False)
     eq_(Bitbucket._matches_domain('redmine.com'), False)
+
+
+class GetRepoFromConfigTests(TestCase):
+    @staticmethod
+    def _test_sections(sections, expected_user, expected_name):
+        config = Config.from_sections(sections)
+        data = Bitbucket.get_repo_data_from_config(config)
+        eq_(data.user, expected_user)
+        eq_(data.name, expected_name)
+
+
+    def test_no_config(self):
+        self._test_sections({}, None, None)
+
+    def test_only_user(self):
+        self._test_sections({'bitbucket': {'repo_user': 'the_repo_user'}},
+                            'the_repo_user', None)
+
+    def test_only_name(self):
+        self._test_sections({'bitbucket': {'repo_name': 'the_repo_name'}},
+                            None, 'the_repo_name')
+
+    def test_both(self):
+        self._test_sections({
+            'bitbucket': {
+                'repo_user': 'the_repo_user',
+                'repo_name': 'the_repo_name',
+            }
+        }, 'the_repo_user', 'the_repo_name')
