@@ -115,7 +115,7 @@ class GetWithCoerceTest(TestCase):
 
 @patch('issue2branch.config.get_config_file', autospec=True)
 @patch.object(Config, 'from_filename')
-def test_get_cofig(mock_from_file, mock_get_file):
+def test_get_config(mock_from_file, mock_get_file):
     mock_get_file.return_value = sentinel.filename
     mock_from_file.return_value = sentinel.config
 
@@ -153,14 +153,14 @@ class GetConfigFileTests(TestCase):
 
     def test_environ_and_no_git(self):
         self.mock_os.environ = {'ISSUE2BRANCH_CONFIG': sentinel.environ_filename}
-        self.mock_git_root.side_effect = Exception()
+        self.mock_git_root.side_effect = iter([Exception()])
         filename = get_config_file()
 
         eq_(filename, sentinel.environ_filename)
 
     def test_no_environ_and_no_git(self):
         self.mock_os.environ = {}
-        self.mock_git_root.side_effect = Exception("MyError")
+        self.mock_git_root.side_effect = iter([Exception("MyError")])
 
         self.assertRaisesRegexp(Exception, "MyError", get_config_file)
 
