@@ -4,10 +4,7 @@ Created on May 17, 2014
 @author: ignacio
 '''
 import logging
-import os
-import subprocess
 
-from ..config import get_config_file
 from ..repo import get_remotes
 from .bitbucket import Bitbucket
 from .github import Github
