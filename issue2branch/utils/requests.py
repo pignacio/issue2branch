@@ -1,8 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 helpers for the requests library
 '''
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals, print_function
 
 import logging
@@ -55,7 +55,6 @@ def _request(method, url, **kwargs):
 
 
 def request(method, url, user=None, password=None, **kwargs):
-    global __WARNED_ABOUT_PLATFORM  # pylint: disable=global-statement
     logger.debug("test")
     logger.info("Requesting: %s:%s", method.__name__, url)
     if user:
