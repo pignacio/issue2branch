@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals, division
+
 from .config import get_config
 from .trackers import get_issue_tracker
 
