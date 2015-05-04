@@ -3,6 +3,8 @@ Created on May 17, 2014
 
 @author: ignacio
 '''
+from __future__ import absolute_import, unicode_literals, division
+
 import json
 import requests
 

@@ -1,3 +1,5 @@
+from __future__ import absolute_import, unicode_literals, division
+
 from .format import colorize
 from .color import green, magenta
 
