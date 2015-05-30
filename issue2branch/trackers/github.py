@@ -18,6 +18,14 @@ _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
                    'new feature'))
 
 class Github(RepoIssueTracker):
+    def __init__(self, repo_user, repo_name,
+                 user=None, password=None):
+        if repo_name.endswith('.git'):
+            repo_name = repo_name[:-4]
+        super(Github, self).__init__(repo_user, repo_name,
+                                     user=user,
+                                     password=password)
+
     def get_issue_list_url(self, config, options):
         params = {
             'per_page': self.get_list_limit(config, options),
