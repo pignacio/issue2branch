@@ -5,6 +5,7 @@ _PRIORITY_COLORS = {
     'urgent': color.red,
     'high': color.bright_yellow,
     'normal': color.bright_blue,
+    'medium': color.bright_blue,
     'low': color.green,
 }
 

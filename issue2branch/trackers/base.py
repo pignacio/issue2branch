@@ -175,14 +175,19 @@ class IssueTracker(object):  # pylint: disable=abstract-class-little-used
             print("{} * {}".format("  " * indent, issue.text()))
             cls._list_issues(issue.childs, indent=indent + 1)
 
+    @classmethod
+    def extract_or_none(cls, json_obj, *keys):
+        return cls.extract_or(None, json_obj, *keys)
+
     @staticmethod
-    def extract_or_none(json_obj, *keys):
+    def extract_or(default, json_obj, *keys):
         for key in keys:
             try:
                 json_obj = json_obj[key]
             except (KeyError, TypeError):
-                return None
+                return default
         return json_obj
+
 
     @classmethod
     def matches_remote(cls, remote):  # pylint: disable=unused-argument
