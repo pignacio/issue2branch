@@ -28,18 +28,18 @@ class TextTests(TestCase):
     def test_priority_text(self):
         self.issue.priority = 'the_priority'
         eq_(self.issue.text(),
-            'the_issue_id - [colorize(the_priority)] -colorize( Issue: ,Issue)the_issue_title')
+            'the_issue_id - [colorize(The_priority)] -colorize( Issue: ,Issue)the_issue_title')
 
     def test_status_text(self):
         self.issue.status = 'the_status'
         eq_(self.issue.text(),
-            'the_issue_id - [colorize(the_status)] -colorize( Issue: ,Issue)the_issue_title')
+            'the_issue_id - [colorize(The_status)] -colorize( Issue: ,Issue)the_issue_title')
 
     def test_priority_status_text(self):
         self.issue.status = 'the_status'
         self.issue.priority = 'the_priority'
         eq_(self.issue.text(),
-            'the_issue_id - [colorize(the_priority)/colorize(the_status)] -colorize( Issue: ,Issue)the_issue_title')
+            'the_issue_id - [colorize(The_priority)/colorize(The_status)] -colorize( Issue: ,Issue)the_issue_title')
 
     def test_assignee_text(self):
         self.issue.assignee = 'the_assignee'

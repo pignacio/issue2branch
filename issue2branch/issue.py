@@ -20,11 +20,12 @@ class Issue(object):
 
     def text(self):
         if self.priority or self.status:
-            texts = [colorize(t) for t in (self.priority, self.status, ) if t]
+            texts = [colorize(t.capitalize())
+                     for t in (self.priority, self.status, ) if t]
             status = " [{}] -".format("/".join(texts))
         else:
             status = ""
-        tag = colorize(" {}: ".format(self.tag), self.tag)
+        tag = colorize(" {}: ".format(self.tag.capitalize()), self.tag)
         if self.assignee:
             assignee = green("({})".format(self.assignee))
             assignee = " - {}".format(assignee)
