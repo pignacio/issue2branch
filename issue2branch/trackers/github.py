@@ -17,6 +17,9 @@ from ..objects import RepoData
 _VALID_TAGS = set(('bug', 'enhancement', 'documentation', 'feature',
                    'new feature'))
 
+_PRIORITY_TAG_PREFIX = "priority:"
+
+
 class Github(RepoIssueTracker):
     def __init__(self, repo_user, repo_name,
                  user=None, password=None):
@@ -37,7 +40,6 @@ class Github(RepoIssueTracker):
     def parse_issue_list(self, content, config, options):
         return [self.parse_issue(issue, config, options) for issue in content]
 
-
     def get_issue_url(self, issue, config, options):
         return self._api_url("repos/{}/{}/issues/{}".format(
             self.repo_user, self.repo_name, issue,
@@ -47,8 +49,11 @@ class Github(RepoIssueTracker):
         issue = Issue(content['number'], content['title'],
                       description=content['body'])
         issue.assignee = self.extract_or_none(content, "assignee", "login")
-        issue.tag = self._first_label(self.extract_or_none(content, 'labels'),
-                                      _VALID_TAGS)
+        labels = self._get_labels(content)
+        issue.tag = self._first_valid_label(labels, _VALID_TAGS)
+        for label in labels:
+            if label.lower().startswith(_PRIORITY_TAG_PREFIX):
+                issue.priority = label[len(_PRIORITY_TAG_PREFIX):]
         return issue
 
     def take_issue(self, issue, config, options):
@@ -60,14 +65,15 @@ class Github(RepoIssueTracker):
     def _api_url(path):
         return "https://api.github.com/{}".format(path)
 
+    @classmethod
+    def _get_labels(cls, content):
+        return [l['name'] for l in cls.extract_or([], content, 'labels')]
+
     @staticmethod
-    def _first_label(labels, valid_labels):
-        if not labels:
-            return None
+    def _first_valid_label(labels, valid_labels):
         for label in labels:
-            name = label['name']
-            if name.lower() in valid_labels:
-                return name
+            if label.lower() in valid_labels:
+                return label
         return None
 
     @classmethod
