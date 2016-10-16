@@ -15,7 +15,7 @@ issue2branch
 .. image:: https://coveralls.io/repos/pignacio/issue2branch/badge.svg?branch=master
     :target: https://coveralls.io/r/pignacio/issue2branch?branch=master
 
-.. image:: https://img.shields.io/github/license/pignacio/issue2branch.svg
+.. image:: https://img.shields.io/pypi/l/issue2branch.svg
     :target: https://pypi.python.org/pypi/issue2branch/
     :alt: License
 
