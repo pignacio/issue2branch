@@ -1,11 +1,11 @@
 issue2branch
 ============
 
-.. image:: https://pypip.in/version/issue2branch/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/v/issue2branch.svg
     :target: https://pypi.python.org/pypi/issue2branch/
     :alt: Latest version
 
-.. image:: https://pypip.in/py_versions/issue2branch/badge.svg?style=flat
+.. image:: https://img.shields.io/pypi/pyversions/issue2branch.svg
     :target: https://pypi.python.org/pypi/issue2branch/
     :alt: Supported Python versions
 
@@ -15,8 +15,7 @@ issue2branch
 .. image:: https://coveralls.io/repos/pignacio/issue2branch/badge.svg?branch=master
     :target: https://coveralls.io/r/pignacio/issue2branch?branch=master
 
-
-.. image:: https://pypip.in/license/issue2branch/badge.svg?style=flat
+.. image:: https://img.shields.io/github/license/pignacio/issue2branch.svg
     :target: https://pypi.python.org/pypi/issue2branch/
     :alt: License
 
