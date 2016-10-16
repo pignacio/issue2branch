@@ -33,4 +33,3 @@ def colorize(text, label=None):
         except KeyError:
             continue
     return text
-

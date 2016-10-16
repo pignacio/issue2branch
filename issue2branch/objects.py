@@ -18,5 +18,3 @@ class RepoData(_RepoData):  # pylint: disable=R
 
 
 RepoData.EMPTY = RepoData(None, None)
-
-
