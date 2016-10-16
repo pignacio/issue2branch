@@ -21,7 +21,7 @@ __all__ = ['IssueTracker', 'RepoIssueTracker']
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 
-class IssueTracker(object):  # pylint: disable=abstract-class-little-used
+class IssueTracker(object):
     _DEFAULT_LIST_LIMIT = 40
 
     def __init__(self, user=None, password=None):

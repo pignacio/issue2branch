@@ -49,4 +49,3 @@ class Issue(object):
     @tag.setter
     def tag(self, tag):
         self._tag = tag or "Issue"
-
